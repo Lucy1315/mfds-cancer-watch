@@ -35,6 +35,9 @@
     --warning: 35 90% 55%;
     --warning-foreground: 35 90% 15%;
 
+    --orphan: 280 65% 50%;
+    --orphan-foreground: 0 0% 100%;
+
     --border: 210 20% 88%;
     --input: 210 20% 88%;
     --ring: 210 70% 35%;
@@ -86,6 +89,9 @@
 
     --warning: 35 90% 55%;
     --warning-foreground: 35 90% 15%;
+
+    --orphan: 280 70% 65%;
+    --orphan-foreground: 0 0% 100%;
 
     --border: 215 20% 22%;
     --input: 215 20% 22%;

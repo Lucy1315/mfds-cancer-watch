@@ -55,6 +55,10 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        orphan: {
+          DEFAULT: "hsl(var(--orphan))",
+          foreground: "hsl(var(--orphan-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
