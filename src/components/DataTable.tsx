@@ -118,7 +118,14 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
                     style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
                   >
                     <td className="text-primary font-medium">
-                      <a href="#" className="hover:underline">{drug.id}</a>
+                      <a 
+                        href={`https://nedrug.mfds.go.kr/pbp/CCBBB01/getItemDetail?itemSeq=${drug.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        {drug.id}
+                      </a>
                     </td>
                     <td className="font-medium">
                       <a href="#" className="text-primary hover:underline">{drug.drugName}</a>
