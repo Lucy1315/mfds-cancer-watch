@@ -107,15 +107,15 @@ const ChartGrid = ({ data }: ChartGridProps) => {
           <div className="w-1 h-5 bg-primary rounded" />
           <h4 className="font-semibold text-foreground">암종별 분포</h4>
         </div>
-        <div className="h-[200px]">
+        <div className="h-[160px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={cancerTypeData}
                 cx="50%"
                 cy="50%"
-                innerRadius={40}
-                outerRadius={65}
+                innerRadius={35}
+                outerRadius={55}
                 paddingAngle={2}
                 dataKey="value"
               >
@@ -131,16 +131,22 @@ const ChartGrid = ({ data }: ChartGridProps) => {
                 }}
                 formatter={(value: number) => [`${value}건`, '']}
               />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                formatter={(value, entry) => {
-                  const item = cancerTypeData.find(d => d.name === value);
-                  return <span className="text-xs">{value}({item?.value || 0}건)</span>;
-                }}
-              />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+        {/* 3x3 그리드 범례 */}
+        <div className="grid grid-cols-3 gap-1 mt-2">
+          {cancerTypeData.map((item, index) => (
+            <div key={item.name} className="flex items-center gap-1">
+              <div 
+                className="w-2 h-2 rounded-full flex-shrink-0" 
+                style={{ backgroundColor: COLORS[index % COLORS.length] }}
+              />
+              <span className="text-[10px] text-muted-foreground truncate">
+                {item.name}({item.value})
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
