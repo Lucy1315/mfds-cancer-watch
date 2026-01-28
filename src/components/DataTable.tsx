@@ -11,17 +11,6 @@ interface DataTableProps {
   dateRange?: { start: string; end: string };
 }
 
-const StatusBadge = ({ status }: { status: DrugApproval['status'] }) => {
-  const statusConfig = {
-    approved: { label: '승인', className: 'status-approved' },
-    pending: { label: '심사중', className: 'status-pending' },
-    rejected: { label: '반려', className: 'status-rejected' },
-  };
-
-  const config = statusConfig[status];
-  return <span className={config.className}>{config.label}</span>;
-};
-
 const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -33,7 +22,8 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
       drug.genericName.toLowerCase().includes(term) ||
       drug.company.toLowerCase().includes(term) ||
       drug.indication.toLowerCase().includes(term) ||
-      drug.cancerType.toLowerCase().includes(term)
+      drug.cancerType.toLowerCase().includes(term) ||
+      drug.id.toLowerCase().includes(term)
     );
   }, [data, searchTerm]);
 
@@ -42,6 +32,29 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
       filename: 'MFDS_항암제_승인현황',
       dateRange,
     });
+  };
+
+  // 제조/수입 판별
+  const getManufactureType = (company: string) => {
+    return company.includes('한국') || company.includes('Korea') ? '수입' : '제조';
+  };
+
+  // 영문명 추출 (괄호 안 또는 성분명 기반)
+  const getEnglishName = (drug: DrugApproval) => {
+    // 괄호 안의 영문명 추출 시도
+    const match = drug.drugName.match(/\(([^)]+)\)/);
+    if (match) {
+      const inParen = match[1];
+      // 영문이 포함되어 있으면 반환
+      if (/[a-zA-Z]/.test(inParen)) {
+        return inParen;
+      }
+    }
+    // 성분명이 영문이면 사용
+    if (/[a-zA-Z]/.test(drug.genericName)) {
+      return drug.genericName;
+    }
+    return '-';
   };
 
   return (
@@ -70,67 +83,74 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
       </div>
 
       <div className="overflow-x-auto -mx-6">
-        <table className="data-table min-w-[1200px]">
+        <table className="data-table min-w-[1400px]">
           <thead>
             <tr>
-              <th className="w-[60px]">No.</th>
-              <th>업체명</th>
-              <th>허가일</th>
+              <th className="w-[100px]">품목기준코드</th>
               <th>제품명</th>
+              <th>제품영문명</th>
+              <th>업체명</th>
+              <th className="w-[100px]">허가일</th>
               <th>주성분</th>
-              <th className="min-w-[300px]">적응증</th>
-              <th>품목구분</th>
-              <th>제조/수입</th>
-              <th>암종</th>
-              <th>상태</th>
+              <th className="min-w-[250px]">적응증</th>
+              <th className="w-[90px]">품목구분</th>
+              <th className="w-[80px]">제조/수입</th>
+              <th className="w-[80px]">암종</th>
+              <th className="min-w-[150px]">비고</th>
             </tr>
           </thead>
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
-                <td colSpan={10} className="text-center py-12 text-muted-foreground">
+                <td colSpan={11} className="text-center py-12 text-muted-foreground">
                   검색 결과가 없습니다.
                 </td>
               </tr>
             ) : (
-              filteredData.map((drug, index) => (
-                <tr 
-                  key={drug.id} 
-                  className="animate-slide-in"
-                  style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
-                >
-                  <td className="text-center text-muted-foreground">{index + 1}</td>
-                  <td className="font-medium">{drug.company}</td>
-                  <td className="text-muted-foreground whitespace-nowrap">{drug.approvalDate}</td>
-                  <td className="font-medium text-primary">
-                    <a href="#" className="hover:underline">{drug.drugName}</a>
-                  </td>
-                  <td className="text-muted-foreground">{drug.genericName}</td>
-                  <td className="text-sm" title={drug.indication}>
-                    {drug.indication.length > 100 
-                      ? `${drug.indication.substring(0, 100)}...` 
-                      : drug.indication}
-                  </td>
-                  <td>
-                    <span className="text-xs px-2 py-1 rounded bg-muted">전문의약품</span>
-                  </td>
-                  <td>
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      drug.company.includes('한국') ? 'bg-accent/20 text-accent-foreground' : 'bg-secondary'
-                    }`}>
-                      {drug.company.includes('한국') ? '수입' : '제조'}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
-                      {drug.cancerType}
-                    </span>
-                  </td>
-                  <td>
-                    <StatusBadge status={drug.status} />
-                  </td>
-                </tr>
-              ))
+              filteredData.map((drug, index) => {
+                const manufactureType = getManufactureType(drug.company);
+                const englishName = getEnglishName(drug);
+                
+                return (
+                  <tr 
+                    key={drug.id} 
+                    className="animate-slide-in"
+                    style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
+                  >
+                    <td className="text-primary font-medium">
+                      <a href="#" className="hover:underline">{drug.id}</a>
+                    </td>
+                    <td className="font-medium">
+                      <a href="#" className="text-primary hover:underline">{drug.drugName}</a>
+                    </td>
+                    <td className="text-muted-foreground text-sm">{englishName}</td>
+                    <td>{drug.company}</td>
+                    <td className="text-muted-foreground whitespace-nowrap">{drug.approvalDate}</td>
+                    <td className="text-primary">{drug.genericName || '-'}</td>
+                    <td className="text-sm" title={drug.indication}>
+                      {drug.indication.length > 80 
+                        ? `${drug.indication.substring(0, 80)}...` 
+                        : drug.indication}
+                    </td>
+                    <td>
+                      <span className="text-xs">전문의약품</span>
+                    </td>
+                    <td>
+                      <span className={`text-xs ${manufactureType === '수입' ? 'text-primary' : ''}`}>
+                        {manufactureType}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="text-primary text-sm">
+                        {drug.cancerType}
+                      </span>
+                    </td>
+                    <td className="text-xs text-muted-foreground">
+                      {drug.className || '-'}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
