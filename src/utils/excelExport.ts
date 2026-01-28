@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx-js-style';
 import { DrugApproval } from '@/data/drugData';
 import { ExtendedDrugApproval } from '@/data/recentApprovals';
 
@@ -10,6 +10,75 @@ export interface ExportOptions {
     end: string;
   };
 }
+
+// 스타일 상수 정의
+const STYLES = {
+  // 헤더 스타일: 12pt, 굵게, 진한 배경
+  header: {
+    font: { name: '맑은 고딕', bold: true, sz: 12, color: { rgb: 'FFFFFF' } },
+    fill: { patternType: 'solid', fgColor: { rgb: '2563EB' } },
+    alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+    border: {
+      top: { style: 'medium', color: { rgb: '1E40AF' } },
+      bottom: { style: 'medium', color: { rgb: '1E40AF' } },
+      left: { style: 'medium', color: { rgb: '1E40AF' } },
+      right: { style: 'medium', color: { rgb: '1E40AF' } },
+    },
+  },
+  // 데이터 행 (홀수) - 11pt, 흰 배경
+  dataOdd: {
+    font: { name: '맑은 고딕', sz: 11, color: { rgb: '1F2937' } },
+    fill: { patternType: 'solid', fgColor: { rgb: 'FFFFFF' } },
+    alignment: { vertical: 'center', wrapText: true },
+    border: {
+      top: { style: 'thin', color: { rgb: '9CA3AF' } },
+      bottom: { style: 'thin', color: { rgb: '9CA3AF' } },
+      left: { style: 'thin', color: { rgb: '9CA3AF' } },
+      right: { style: 'thin', color: { rgb: '9CA3AF' } },
+    },
+  },
+  // 데이터 행 (짝수) - 11pt, 줄무늬 배경
+  dataEven: {
+    font: { name: '맑은 고딕', sz: 11, color: { rgb: '1F2937' } },
+    fill: { patternType: 'solid', fgColor: { rgb: 'EFF6FF' } },
+    alignment: { vertical: 'center', wrapText: true },
+    border: {
+      top: { style: 'thin', color: { rgb: '9CA3AF' } },
+      bottom: { style: 'thin', color: { rgb: '9CA3AF' } },
+      left: { style: 'thin', color: { rgb: '9CA3AF' } },
+      right: { style: 'thin', color: { rgb: '9CA3AF' } },
+    },
+  },
+  // 제목 스타일
+  title: {
+    font: { name: '맑은 고딕', bold: true, sz: 18, color: { rgb: '1E3A8A' } },
+    alignment: { horizontal: 'left', vertical: 'center' },
+  },
+  // 섹션 헤더
+  sectionHeader: {
+    font: { name: '맑은 고딕', bold: true, sz: 14, color: { rgb: '1E40AF' } },
+    fill: { patternType: 'solid', fgColor: { rgb: 'DBEAFE' } },
+    alignment: { vertical: 'center' },
+    border: {
+      top: { style: 'medium', color: { rgb: '3B82F6' } },
+      bottom: { style: 'medium', color: { rgb: '3B82F6' } },
+      left: { style: 'thin', color: { rgb: '3B82F6' } },
+      right: { style: 'thin', color: { rgb: '3B82F6' } },
+    },
+  },
+  // 서브 헤더
+  subHeader: {
+    font: { name: '맑은 고딕', bold: true, sz: 11, color: { rgb: 'FFFFFF' } },
+    fill: { patternType: 'solid', fgColor: { rgb: '3B82F6' } },
+    alignment: { horizontal: 'center', vertical: 'center' },
+    border: {
+      top: { style: 'medium', color: { rgb: '1E40AF' } },
+      bottom: { style: 'medium', color: { rgb: '1E40AF' } },
+      left: { style: 'medium', color: { rgb: '1E40AF' } },
+      right: { style: 'medium', color: { rgb: '1E40AF' } },
+    },
+  },
+};
 
 export function exportToExcel(
   drugs: (DrugApproval | ExtendedDrugApproval)[],
@@ -27,13 +96,13 @@ export function exportToExcel(
   const summaryData = createSummarySheet(drugs, dateRange);
   const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
   
-  // 요약 시트 컬럼 너비
+  // 요약 시트 컬럼 너비 (넓게)
   summarySheet['!cols'] = [
-    { wch: 22 }, { wch: 30 }, { wch: 18 }, { wch: 12 }, { wch: 20 }, { wch: 55 }
+    { wch: 24 }, { wch: 35 }, { wch: 20 }, { wch: 14 }, { wch: 22 }, { wch: 60 }
   ];
   
   // 행 높이 설정 (가시성 향상)
-  summarySheet['!rows'] = summaryData.map((_, index) => ({ hpt: index === 0 ? 35 : 28 }));
+  summarySheet['!rows'] = summaryData.map((_, index) => ({ hpt: index === 0 ? 40 : 30 }));
   
   // 요약 시트 스타일 적용
   applySummaryStyles(summarySheet, summaryData);
@@ -44,28 +113,28 @@ export function exportToExcel(
   const detailData = createDetailSheet(drugs);
   const detailSheet = XLSX.utils.aoa_to_sheet(detailData);
   
-  // 상세 시트 컬럼 너비 (가시성 향상)
+  // 상세 시트 컬럼 너비 (넓게)
   detailSheet['!cols'] = [
-    { wch: 14 },  // 품목기준코드
-    { wch: 35 },  // 제품명
-    { wch: 18 },  // 업체명
-    { wch: 12 },  // 허가일
-    { wch: 38 },  // 주성분
-    { wch: 65 },  // 적응증
-    { wch: 14 },  // 암종
-    { wch: 11 },  // 전문일반
-    { wch: 11 },  // 허가유형
-    { wch: 10 },  // 제조/수입
-    { wch: 20 },  // 제조국
-    { wch: 58 },  // 위탁제조업체
-    { wch: 25 },  // 비고
+    { wch: 16 },  // 품목기준코드
+    { wch: 38 },  // 제품명
+    { wch: 20 },  // 업체명
+    { wch: 14 },  // 허가일
+    { wch: 40 },  // 주성분
+    { wch: 70 },  // 적응증
+    { wch: 16 },  // 암종
+    { wch: 12 },  // 전문일반
+    { wch: 12 },  // 허가유형
+    { wch: 12 },  // 제조/수입
+    { wch: 22 },  // 제조국
+    { wch: 60 },  // 위탁제조업체
+    { wch: 28 },  // 비고
   ];
   
-  // 행 높이 설정 (헤더 35, 데이터 32)
-  detailSheet['!rows'] = detailData.map((_, index) => ({ hpt: index === 0 ? 35 : 32 }));
+  // 행 높이 설정 (헤더 38, 데이터 34)
+  detailSheet['!rows'] = detailData.map((_, index) => ({ hpt: index === 0 ? 38 : 34 }));
   
-  // 전체 셀에 스타일 적용 (텍스트 줄바꿈, 테두리)
-  applyStyles(detailSheet, detailData);
+  // 전체 셀에 스타일 적용
+  applyDetailStyles(detailSheet, detailData);
   
   XLSX.utils.book_append_sheet(workbook, detailSheet, '상세목록');
 
@@ -171,7 +240,7 @@ function createDetailSheet(
   return rows;
 }
 
-function applyStyles(sheet: XLSX.WorkSheet, data: (string | number)[][]): void {
+function applyDetailStyles(sheet: XLSX.WorkSheet, data: (string | number)[][]): void {
   const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
   
   for (let row = range.s.r; row <= range.e.r; row++) {
@@ -182,39 +251,13 @@ function applyStyles(sheet: XLSX.WorkSheet, data: (string | number)[][]): void {
       }
       
       const cell = sheet[cellRef];
-      if (!cell.s) {
-        cell.s = {};
-      }
       
-      // 헤더 행 스타일 (더 두껍고 진한 배경)
+      // 헤더 행 스타일
       if (row === 0) {
-        cell.s = {
-          font: { name: '맑은 고딕', bold: true, sz: 12, color: { rgb: '1F2937' } },
-          fill: { patternType: 'solid', fgColor: { rgb: 'D1D5DB' } },
-          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
-          border: {
-            top: { style: 'medium', color: { rgb: '374151' } },
-            bottom: { style: 'medium', color: { rgb: '374151' } },
-            left: { style: 'thin', color: { rgb: '6B7280' } },
-            right: { style: 'thin', color: { rgb: '6B7280' } },
-          },
-        };
+        cell.s = STYLES.header;
       } else {
-        // 데이터 행 스타일 (더 큰 폰트, 줄무늬 배경)
-        const isEvenRow = row % 2 === 0;
-        cell.s = {
-          font: { name: '맑은 고딕', sz: 11, color: { rgb: '374151' } },
-          fill: isEvenRow 
-            ? { patternType: 'solid', fgColor: { rgb: 'F9FAFB' } }
-            : { patternType: 'solid', fgColor: { rgb: 'FFFFFF' } },
-          alignment: { vertical: 'center', wrapText: true },
-          border: {
-            top: { style: 'thin', color: { rgb: 'D1D5DB' } },
-            bottom: { style: 'thin', color: { rgb: 'D1D5DB' } },
-            left: { style: 'thin', color: { rgb: 'E5E7EB' } },
-            right: { style: 'thin', color: { rgb: 'E5E7EB' } },
-          },
-        };
+        // 데이터 행 스타일 (줄무늬)
+        cell.s = row % 2 === 0 ? STYLES.dataEven : STYLES.dataOdd;
       }
     }
   }
@@ -223,56 +266,49 @@ function applyStyles(sheet: XLSX.WorkSheet, data: (string | number)[][]): void {
 function applySummaryStyles(sheet: XLSX.WorkSheet, data: (string | number)[][]): void {
   const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
   
+  // 제품 상세 목록 헤더 행 인덱스 찾기
+  let productHeaderRow = -1;
+  for (let i = 0; i < data.length; i++) {
+    if (data[i]?.[0] === '품목기준코드') {
+      productHeaderRow = i;
+      break;
+    }
+  }
+  
   for (let row = range.s.r; row <= range.e.r; row++) {
     for (let col = range.s.c; col <= range.e.c; col++) {
       const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
-      if (!sheet[cellRef]) continue;
+      if (!sheet[cellRef]) {
+        sheet[cellRef] = { t: 's', v: '' };
+      }
       
       const cell = sheet[cellRef];
-      if (!cell.s) {
-        cell.s = {};
-      }
+      const rowData = data[row];
       
       // 제목 행 (첫 번째 행)
       if (row === 0) {
-        cell.s = {
-          font: { name: '맑은 고딕', bold: true, sz: 16, color: { rgb: '1E3A8A' } },
-          alignment: { horizontal: 'left', vertical: 'center' },
-        };
+        cell.s = STYLES.title;
       }
       // 섹션 헤더 (승인 현황 통계, 제품별 상세 목록)
-      else if (data[row]?.[0] === '승인 현황 통계' || data[row]?.[0] === '제품별 상세 목록') {
-        cell.s = {
-          font: { name: '맑은 고딕', bold: true, sz: 13, color: { rgb: '1F2937' } },
-          fill: { patternType: 'solid', fgColor: { rgb: 'E5E7EB' } },
-          alignment: { vertical: 'center' },
-        };
+      else if (rowData?.[0] === '승인 현황 통계' || rowData?.[0] === '제품별 상세 목록') {
+        cell.s = STYLES.sectionHeader;
       }
       // 테이블 헤더 행
-      else if (data[row]?.[0] === '구분' || data[row]?.[0] === '품목기준코드') {
-        cell.s = {
-          font: { name: '맑은 고딕', bold: true, sz: 11, color: { rgb: '1F2937' } },
-          fill: { patternType: 'solid', fgColor: { rgb: 'D1D5DB' } },
-          alignment: { horizontal: 'center', vertical: 'center' },
-          border: {
-            top: { style: 'medium', color: { rgb: '374151' } },
-            bottom: { style: 'medium', color: { rgb: '374151' } },
-            left: { style: 'thin', color: { rgb: '6B7280' } },
-            right: { style: 'thin', color: { rgb: '6B7280' } },
-          },
-        };
+      else if (rowData?.[0] === '구분' || rowData?.[0] === '품목기준코드') {
+        cell.s = STYLES.subHeader;
       }
-      // 일반 데이터
+      // 제품 목록 영역 (상세 목록 헤더 이후)
+      else if (productHeaderRow > 0 && row > productHeaderRow) {
+        cell.s = (row - productHeaderRow) % 2 === 0 ? STYLES.dataEven : STYLES.dataOdd;
+      }
+      // 통계 영역
+      else if (row >= 5 && row < productHeaderRow - 2) {
+        cell.s = row % 2 === 0 ? STYLES.dataEven : STYLES.dataOdd;
+      }
+      // 빈 행
       else {
         cell.s = {
-          font: { name: '맑은 고딕', sz: 11, color: { rgb: '374151' } },
-          alignment: { vertical: 'center' },
-          border: {
-            top: { style: 'thin', color: { rgb: 'E5E7EB' } },
-            bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
-            left: { style: 'thin', color: { rgb: 'E5E7EB' } },
-            right: { style: 'thin', color: { rgb: 'E5E7EB' } },
-          },
+          font: { name: '맑은 고딕', sz: 11 },
         };
       }
     }
