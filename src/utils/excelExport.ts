@@ -29,11 +29,14 @@ export function exportToExcel(
   
   // 요약 시트 컬럼 너비
   summarySheet['!cols'] = [
-    { wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 10 }, { wch: 18 }, { wch: 50 }
+    { wch: 22 }, { wch: 30 }, { wch: 18 }, { wch: 12 }, { wch: 20 }, { wch: 55 }
   ];
   
-  // 행 높이 설정
-  summarySheet['!rows'] = summaryData.map(() => ({ hpt: 25 }));
+  // 행 높이 설정 (가시성 향상)
+  summarySheet['!rows'] = summaryData.map((_, index) => ({ hpt: index === 0 ? 35 : 28 }));
+  
+  // 요약 시트 스타일 적용
+  applySummaryStyles(summarySheet, summaryData);
   
   XLSX.utils.book_append_sheet(workbook, summarySheet, '요약');
 
@@ -41,25 +44,25 @@ export function exportToExcel(
   const detailData = createDetailSheet(drugs);
   const detailSheet = XLSX.utils.aoa_to_sheet(detailData);
   
-  // 상세 시트 컬럼 너비 (내용에 맞게 자동 조정)
+  // 상세 시트 컬럼 너비 (가시성 향상)
   detailSheet['!cols'] = [
-    { wch: 12 },  // 품목기준코드
-    { wch: 32 },  // 제품명
-    { wch: 15 },  // 업체명
+    { wch: 14 },  // 품목기준코드
+    { wch: 35 },  // 제품명
+    { wch: 18 },  // 업체명
     { wch: 12 },  // 허가일
-    { wch: 35 },  // 주성분
-    { wch: 60 },  // 적응증
+    { wch: 38 },  // 주성분
+    { wch: 65 },  // 적응증
     { wch: 14 },  // 암종
-    { wch: 10 },  // 전문일반
-    { wch: 10 },  // 허가유형
-    { wch: 8 },   // 제조/수입
-    { wch: 18 },  // 제조국
-    { wch: 55 },  // 위탁제조업체
-    { wch: 22 },  // 비고
+    { wch: 11 },  // 전문일반
+    { wch: 11 },  // 허가유형
+    { wch: 10 },  // 제조/수입
+    { wch: 20 },  // 제조국
+    { wch: 58 },  // 위탁제조업체
+    { wch: 25 },  // 비고
   ];
   
-  // 행 높이 30 설정
-  detailSheet['!rows'] = detailData.map((_, index) => ({ hpt: index === 0 ? 25 : 30 }));
+  // 행 높이 설정 (헤더 35, 데이터 32)
+  detailSheet['!rows'] = detailData.map((_, index) => ({ hpt: index === 0 ? 35 : 32 }));
   
   // 전체 셀에 스타일 적용 (텍스트 줄바꿈, 테두리)
   applyStyles(detailSheet, detailData);
@@ -178,34 +181,97 @@ function applyStyles(sheet: XLSX.WorkSheet, data: (string | number)[][]): void {
         sheet[cellRef] = { t: 's', v: '' };
       }
       
-      // 스타일 객체 추가 (xlsx 라이브러리 기본 지원 범위 내)
       const cell = sheet[cellRef];
       if (!cell.s) {
         cell.s = {};
       }
       
-      // 헤더 행 스타일
+      // 헤더 행 스타일 (더 두껍고 진한 배경)
       if (row === 0) {
         cell.s = {
-          font: { name: '맑은 고딕', bold: true, sz: 11 },
-          fill: { fgColor: { rgb: 'E7E6E6' } },
+          font: { name: '맑은 고딕', bold: true, sz: 12, color: { rgb: '1F2937' } },
+          fill: { patternType: 'solid', fgColor: { rgb: 'D1D5DB' } },
           alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
           border: {
-            top: { style: 'thin', color: { rgb: '000000' } },
-            bottom: { style: 'thin', color: { rgb: '000000' } },
-            left: { style: 'thin', color: { rgb: '000000' } },
-            right: { style: 'thin', color: { rgb: '000000' } },
+            top: { style: 'medium', color: { rgb: '374151' } },
+            bottom: { style: 'medium', color: { rgb: '374151' } },
+            left: { style: 'thin', color: { rgb: '6B7280' } },
+            right: { style: 'thin', color: { rgb: '6B7280' } },
           },
         };
       } else {
+        // 데이터 행 스타일 (더 큰 폰트, 줄무늬 배경)
+        const isEvenRow = row % 2 === 0;
         cell.s = {
-          font: { name: '맑은 고딕', sz: 10 },
+          font: { name: '맑은 고딕', sz: 11, color: { rgb: '374151' } },
+          fill: isEvenRow 
+            ? { patternType: 'solid', fgColor: { rgb: 'F9FAFB' } }
+            : { patternType: 'solid', fgColor: { rgb: 'FFFFFF' } },
           alignment: { vertical: 'center', wrapText: true },
           border: {
-            top: { style: 'thin', color: { rgb: '000000' } },
-            bottom: { style: 'thin', color: { rgb: '000000' } },
-            left: { style: 'thin', color: { rgb: '000000' } },
-            right: { style: 'thin', color: { rgb: '000000' } },
+            top: { style: 'thin', color: { rgb: 'D1D5DB' } },
+            bottom: { style: 'thin', color: { rgb: 'D1D5DB' } },
+            left: { style: 'thin', color: { rgb: 'E5E7EB' } },
+            right: { style: 'thin', color: { rgb: 'E5E7EB' } },
+          },
+        };
+      }
+    }
+  }
+}
+
+function applySummaryStyles(sheet: XLSX.WorkSheet, data: (string | number)[][]): void {
+  const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+  
+  for (let row = range.s.r; row <= range.e.r; row++) {
+    for (let col = range.s.c; col <= range.e.c; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+      if (!sheet[cellRef]) continue;
+      
+      const cell = sheet[cellRef];
+      if (!cell.s) {
+        cell.s = {};
+      }
+      
+      // 제목 행 (첫 번째 행)
+      if (row === 0) {
+        cell.s = {
+          font: { name: '맑은 고딕', bold: true, sz: 16, color: { rgb: '1E3A8A' } },
+          alignment: { horizontal: 'left', vertical: 'center' },
+        };
+      }
+      // 섹션 헤더 (승인 현황 통계, 제품별 상세 목록)
+      else if (data[row]?.[0] === '승인 현황 통계' || data[row]?.[0] === '제품별 상세 목록') {
+        cell.s = {
+          font: { name: '맑은 고딕', bold: true, sz: 13, color: { rgb: '1F2937' } },
+          fill: { patternType: 'solid', fgColor: { rgb: 'E5E7EB' } },
+          alignment: { vertical: 'center' },
+        };
+      }
+      // 테이블 헤더 행
+      else if (data[row]?.[0] === '구분' || data[row]?.[0] === '품목기준코드') {
+        cell.s = {
+          font: { name: '맑은 고딕', bold: true, sz: 11, color: { rgb: '1F2937' } },
+          fill: { patternType: 'solid', fgColor: { rgb: 'D1D5DB' } },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: {
+            top: { style: 'medium', color: { rgb: '374151' } },
+            bottom: { style: 'medium', color: { rgb: '374151' } },
+            left: { style: 'thin', color: { rgb: '6B7280' } },
+            right: { style: 'thin', color: { rgb: '6B7280' } },
+          },
+        };
+      }
+      // 일반 데이터
+      else {
+        cell.s = {
+          font: { name: '맑은 고딕', sz: 11, color: { rgb: '374151' } },
+          alignment: { vertical: 'center' },
+          border: {
+            top: { style: 'thin', color: { rgb: 'E5E7EB' } },
+            bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
+            left: { style: 'thin', color: { rgb: 'E5E7EB' } },
+            right: { style: 'thin', color: { rgb: 'E5E7EB' } },
           },
         };
       }
