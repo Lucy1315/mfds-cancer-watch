@@ -7,7 +7,8 @@ export interface DrugApproval {
   cancerType: string;
   approvalDate: string;
   status: 'approved' | 'pending' | 'rejected';
-  approvalNumber: string;
+  approvalNumber?: string;
+  className?: string;
 }
 
 export const drugApprovals: DrugApproval[] = [
