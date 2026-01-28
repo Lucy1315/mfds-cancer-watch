@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Search, Filter, RefreshCw, Database } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Search, Filter, RefreshCw, Database, Download, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { drugApprovals, cancerTypes, DrugApproval } from '@/data/drugData';
+import { recentApprovals, dateRange } from '@/data/recentApprovals';
 import { useDrugData } from '@/hooks/useDrugData';
+import { exportToExcel } from '@/utils/excelExport';
 import { cn } from '@/lib/utils';
 
 const StatusBadge = ({ status }: { status: DrugApproval['status'] }) => {
@@ -18,6 +20,8 @@ const StatusBadge = ({ status }: { status: DrugApproval['status'] }) => {
   return <span className={config.className}>{config.label}</span>;
 };
 
+type DataSourceType = 'recent' | 'sample' | 'api';
+
 interface DrugTableProps {
   showApiButton?: boolean;
 }
@@ -25,15 +29,25 @@ interface DrugTableProps {
 const DrugTable = ({ showApiButton = true }: DrugTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCancer, setSelectedCancer] = useState('전체');
-  const [useApiData, setUseApiData] = useState(false);
+  const [dataSource, setDataSource] = useState<DataSourceType>('recent');
   
   const { isLoading, apiDrugs, hasLoadedOnce, fetchDrugs } = useDrugData();
 
   // 사용할 데이터 소스 결정
-  const dataSource = useApiData && hasLoadedOnce ? apiDrugs : drugApprovals;
+  const currentData = useMemo(() => {
+    switch (dataSource) {
+      case 'recent':
+        return recentApprovals;
+      case 'api':
+        return hasLoadedOnce ? apiDrugs : recentApprovals;
+      case 'sample':
+      default:
+        return drugApprovals;
+    }
+  }, [dataSource, apiDrugs, hasLoadedOnce]);
 
   const filteredDrugs = useMemo(() => {
-    return dataSource.filter((drug) => {
+    return currentData.filter((drug) => {
       const matchesSearch =
         drug.drugName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         drug.genericName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,33 +58,67 @@ const DrugTable = ({ showApiButton = true }: DrugTableProps) => {
 
       return matchesSearch && matchesCancer;
     });
-  }, [searchTerm, selectedCancer, dataSource]);
+  }, [searchTerm, selectedCancer, currentData]);
 
   const handleLoadApiData = async () => {
     const result = await fetchDrugs();
     if (result?.success) {
-      setUseApiData(true);
+      setDataSource('api');
     }
   };
 
-  const handleToggleDataSource = () => {
-    if (!useApiData && !hasLoadedOnce) {
-      handleLoadApiData();
-    } else {
-      setUseApiData(!useApiData);
+  const handleExportExcel = () => {
+    const exportData = dataSource === 'recent' 
+      ? filteredDrugs 
+      : filteredDrugs;
+    
+    exportToExcel(exportData, {
+      filename: dataSource === 'recent' 
+        ? `MFDS_항암제_승인현황_${dateRange.label.replace(/\s/g, '')}` 
+        : 'MFDS_항암제_승인현황',
+      dateRange: dataSource === 'recent' ? dateRange : undefined,
+    });
+  };
+
+  const getDataSourceLabel = () => {
+    switch (dataSource) {
+      case 'recent':
+        return `최근 승인 (${dateRange.label})`;
+      case 'api':
+        return '공공데이터 API (전체)';
+      case 'sample':
+        return '샘플 데이터';
     }
   };
 
   return (
     <div className="stat-card animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold text-foreground">항암제 승인 목록</h3>
-          {showApiButton && (
+      <div className="flex flex-col gap-4 mb-6">
+        {/* 헤더 */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-foreground">항암제 승인 목록</h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
             <Button
-              variant={useApiData ? "default" : "outline"}
+              variant={dataSource === 'recent' ? 'default' : 'outline'}
               size="sm"
-              onClick={handleToggleDataSource}
+              onClick={() => setDataSource('recent')}
+              className="gap-2"
+            >
+              <Calendar className="w-4 h-4" />
+              최근 2개월
+            </Button>
+            <Button
+              variant={dataSource === 'api' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                if (!hasLoadedOnce) {
+                  handleLoadApiData();
+                } else {
+                  setDataSource('api');
+                }
+              }}
               disabled={isLoading}
               className="gap-2"
             >
@@ -79,18 +127,29 @@ const DrugTable = ({ showApiButton = true }: DrugTableProps) => {
               ) : (
                 <Database className="w-4 h-4" />
               )}
-              {useApiData ? '공공데이터' : '샘플데이터'}
+              전체 API
             </Button>
-          )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportExcel}
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Excel 다운로드
+            </Button>
+          </div>
         </div>
+
+        {/* 검색 및 필터 */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="약품명, 성분명, 제조사 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 w-full sm:w-[280px]"
+              className="pl-9"
             />
           </div>
           <Select value={selectedCancer} onValueChange={setSelectedCancer}>
@@ -111,16 +170,21 @@ const DrugTable = ({ showApiButton = true }: DrugTableProps) => {
 
       {/* 데이터 소스 표시 */}
       <div className="mb-4 p-3 rounded-lg bg-muted/50 text-sm">
-        <div className="flex items-center gap-2">
-          <div className={cn(
-            "w-2 h-2 rounded-full",
-            useApiData ? "bg-primary" : "bg-accent"
-          )} />
-          <span className="text-muted-foreground">
-            {useApiData 
-              ? '공공데이터 API (data.go.kr) - 식약처 의약품 제품 허가정보' 
-              : '샘플 데이터 - 공공데이터 API 연동 버튼을 클릭하세요'}
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              "w-2 h-2 rounded-full",
+              dataSource === 'recent' ? "bg-primary" : dataSource === 'api' ? "bg-accent" : "bg-muted-foreground"
+            )} />
+            <span className="text-muted-foreground">
+              {getDataSourceLabel()}
+            </span>
+          </div>
+          {dataSource === 'recent' && (
+            <span className="text-xs text-muted-foreground">
+              {dateRange.start} ~ {dateRange.end}
+            </span>
+          )}
         </div>
       </div>
 
@@ -184,7 +248,7 @@ const DrugTable = ({ showApiButton = true }: DrugTableProps) => {
 
       <div className="mt-4 pt-4 border-t text-sm text-muted-foreground flex items-center justify-between">
         <span>총 {filteredDrugs.length}개 항목</span>
-        {useApiData && hasLoadedOnce && (
+        {dataSource === 'api' && hasLoadedOnce && (
           <Button
             variant="ghost"
             size="sm"
