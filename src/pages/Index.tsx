@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { Download, Calendar } from 'lucide-react';
 import Header from '@/components/Header';
 import FilterPanel, { FilterState } from '@/components/FilterPanel';
+import UserGuide from '@/components/UserGuide';
 import ChartGrid from '@/components/ChartGrid';
 import DataTable from '@/components/DataTable';
 import { Button } from '@/components/ui/button';
@@ -158,6 +159,9 @@ const Index = () => {
           cancerTypes={cancerTypes}
           companies={companies}
         />
+
+        {/* 사용방법 안내 */}
+        <UserGuide />
 
         {/* 차트 그리드 */}
         <ChartGrid data={filteredData} />
