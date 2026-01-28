@@ -135,10 +135,10 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
                       <span className="text-xs">{ext.drugCategory || '전문의약품'}</span>
                     </td>
                     <td>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        ext.approvalType === '신약' ? 'bg-primary/10 text-primary' :
-                        ext.approvalType === '희귀의약품' ? 'bg-accent/20 text-accent-foreground' :
-                        'bg-muted'
+                      <span className={`text-xs px-2 py-1 rounded font-medium ${
+                        ext.approvalType === '신약' ? 'bg-primary/15 text-primary' :
+                        ext.approvalType === '희귀의약품' ? 'bg-orphan/20 text-orphan' :
+                        'bg-muted text-muted-foreground'
                       }`}>
                         {ext.approvalType || '-'}
                       </span>
