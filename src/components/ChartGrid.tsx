@@ -244,7 +244,7 @@ const ChartGrid = ({ data }: ChartGridProps) => {
               />
               <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                 {companyData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill="hsl(220, 70%, 55%)" />
                 ))}
               </Bar>
             </BarChart>
