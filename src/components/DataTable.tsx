@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Search, FileText, Download } from 'lucide-react';
+import { Search, FileText, Download, ExternalLink } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { DrugApproval } from '@/data/drugData';
+import { ExtendedDrugApproval } from '@/data/recentApprovals';
 import { exportToExcel } from '@/utils/excelExport';
 
 interface DataTableProps {
-  data: DrugApproval[];
+  data: (DrugApproval | ExtendedDrugApproval)[];
   title?: string;
   dateRange?: { start: string; end: string };
 }
@@ -32,29 +33,6 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
       filename: 'MFDS_항암제_승인현황',
       dateRange,
     });
-  };
-
-  // 제조/수입 판별
-  const getManufactureType = (company: string) => {
-    return company.includes('한국') || company.includes('Korea') ? '수입' : '제조';
-  };
-
-  // 영문명 추출 (괄호 안 또는 성분명 기반)
-  const getEnglishName = (drug: DrugApproval) => {
-    // 괄호 안의 영문명 추출 시도
-    const match = drug.drugName.match(/\(([^)]+)\)/);
-    if (match) {
-      const inParen = match[1];
-      // 영문이 포함되어 있으면 반환
-      if (/[a-zA-Z]/.test(inParen)) {
-        return inParen;
-      }
-    }
-    // 성분명이 영문이면 사용
-    if (/[a-zA-Z]/.test(drug.genericName)) {
-      return drug.genericName;
-    }
-    return '-';
   };
 
   return (
@@ -83,33 +61,35 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
       </div>
 
       <div className="overflow-x-auto -mx-6">
-        <table className="data-table min-w-[1400px]">
+        <table className="data-table min-w-[1600px]">
           <thead>
             <tr>
               <th className="w-[100px]">품목기준코드</th>
               <th>제품명</th>
-              <th>제품영문명</th>
               <th>업체명</th>
               <th className="w-[100px]">허가일</th>
               <th>주성분</th>
-              <th className="min-w-[250px]">적응증</th>
-              <th className="w-[90px]">품목구분</th>
-              <th className="w-[80px]">제조/수입</th>
-              <th className="w-[80px]">암종</th>
-              <th className="min-w-[150px]">비고</th>
+              <th className="min-w-[200px]">적응증</th>
+              <th className="w-[100px]">암종</th>
+              <th className="w-[80px]">전문일반</th>
+              <th className="w-[80px]">허가유형</th>
+              <th className="w-[70px]">제조/수입</th>
+              <th>제조국</th>
+              <th>위탁제조업체</th>
+              <th>비고</th>
             </tr>
           </thead>
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
-                <td colSpan={11} className="text-center py-12 text-muted-foreground">
+                <td colSpan={13} className="text-center py-12 text-muted-foreground">
                   검색 결과가 없습니다.
                 </td>
               </tr>
             ) : (
               filteredData.map((drug, index) => {
-                const manufactureType = getManufactureType(drug.company);
-                const englishName = getEnglishName(drug);
+                const ext = drug as ExtendedDrugApproval;
+                const manufactureType = ext.manufactureType || (drug.company.includes('한국') ? '수입' : '제조');
                 
                 return (
                   <tr 
@@ -122,38 +102,64 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
                         href={`https://nedrug.mfds.go.kr/pbp/CCBBB01/getItemDetail?itemSeq=${drug.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:underline"
+                        className="hover:underline inline-flex items-center gap-1"
                       >
                         {drug.id}
+                        <ExternalLink className="w-3 h-3" />
                       </a>
                     </td>
                     <td className="font-medium">
-                      <a href="#" className="text-primary hover:underline">{drug.drugName}</a>
+                      <a 
+                        href={`https://nedrug.mfds.go.kr/pbp/CCBBB01/getItemDetail?itemSeq=${drug.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {drug.drugName}
+                      </a>
                     </td>
-                    <td className="text-muted-foreground text-sm">{englishName}</td>
                     <td>{drug.company}</td>
                     <td className="text-muted-foreground whitespace-nowrap">{drug.approvalDate}</td>
-                    <td className="text-primary">{drug.genericName || '-'}</td>
+                    <td className="text-primary text-sm">{drug.genericName || '-'}</td>
                     <td className="text-sm" title={drug.indication}>
-                      {drug.indication.length > 80 
-                        ? `${drug.indication.substring(0, 80)}...` 
+                      {drug.indication.length > 60 
+                        ? `${drug.indication.substring(0, 60)}...` 
                         : drug.indication}
                     </td>
                     <td>
-                      <span className="text-xs">전문의약품</span>
+                      <span className="text-primary text-sm font-medium">
+                        {drug.cancerType}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="text-xs">{ext.drugCategory || '전문의약품'}</span>
+                    </td>
+                    <td>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        ext.approvalType === '신약' ? 'bg-primary/10 text-primary' :
+                        ext.approvalType === '희귀의약품' ? 'bg-accent/20 text-accent-foreground' :
+                        'bg-muted'
+                      }`}>
+                        {ext.approvalType || '-'}
+                      </span>
                     </td>
                     <td>
                       <span className={`text-xs ${manufactureType === '수입' ? 'text-primary' : ''}`}>
                         {manufactureType}
                       </span>
                     </td>
-                    <td>
-                      <span className="text-primary text-sm">
-                        {drug.cancerType}
-                      </span>
+                    <td className="text-sm text-muted-foreground">
+                      {ext.manufacturingCountry || '-'}
+                    </td>
+                    <td className="text-xs text-muted-foreground" title={ext.consignedManufacturer}>
+                      {ext.consignedManufacturer 
+                        ? (ext.consignedManufacturer.length > 40 
+                            ? `${ext.consignedManufacturer.substring(0, 40)}...` 
+                            : ext.consignedManufacturer)
+                        : '-'}
                     </td>
                     <td className="text-xs text-muted-foreground">
-                      {drug.className || '-'}
+                      {ext.notes || '-'}
                     </td>
                   </tr>
                 );
