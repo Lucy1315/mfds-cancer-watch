@@ -134,7 +134,10 @@ const ChartGrid = ({ data }: ChartGridProps) => {
               <Legend 
                 verticalAlign="bottom" 
                 height={36}
-                formatter={(value) => <span className="text-xs">{value}</span>}
+                formatter={(value, entry) => {
+                  const item = cancerTypeData.find(d => d.name === value);
+                  return <span className="text-xs">{value}({item?.value || 0}건)</span>;
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -179,7 +182,10 @@ const ChartGrid = ({ data }: ChartGridProps) => {
               <Legend 
                 verticalAlign="bottom" 
                 height={36}
-                formatter={(value) => <span className="text-xs">{value}</span>}
+                formatter={(value) => {
+                  const item = approvalTypeData.find(d => d.name === value);
+                  return <span className="text-xs">{value}({item?.value || 0}건)</span>;
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -219,7 +225,10 @@ const ChartGrid = ({ data }: ChartGridProps) => {
               <Legend 
                 verticalAlign="bottom" 
                 height={36}
-                formatter={(value) => <span className="text-xs">{value}</span>}
+                formatter={(value) => {
+                  const item = manufactureData.find(d => d.name === value);
+                  return <span className="text-xs">{value}({item?.value || 0}건)</span>;
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -259,7 +268,10 @@ const ChartGrid = ({ data }: ChartGridProps) => {
               <Legend 
                 verticalAlign="bottom" 
                 height={36}
-                formatter={(value) => <span className="text-xs">{value}</span>}
+                formatter={(value) => {
+                  const item = mechanismData.find(d => d.name === value);
+                  return <span className="text-xs">{value}({item?.value || 0}건)</span>;
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
