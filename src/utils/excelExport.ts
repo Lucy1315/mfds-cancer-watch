@@ -25,22 +25,9 @@ const STYLES = {
       right: { style: 'medium', color: { rgb: '1E40AF' } },
     },
   },
-  // 데이터 행 (홀수) - 11pt, 흰 배경
-  dataOdd: {
+  // 데이터 행 - 11pt, 배경 없음, 테두리만
+  data: {
     font: { name: '맑은 고딕', sz: 11, color: { rgb: '1F2937' } },
-    fill: { patternType: 'solid', fgColor: { rgb: 'FFFFFF' } },
-    alignment: { vertical: 'center', wrapText: true },
-    border: {
-      top: { style: 'thin', color: { rgb: '9CA3AF' } },
-      bottom: { style: 'thin', color: { rgb: '9CA3AF' } },
-      left: { style: 'thin', color: { rgb: '9CA3AF' } },
-      right: { style: 'thin', color: { rgb: '9CA3AF' } },
-    },
-  },
-  // 데이터 행 (짝수) - 11pt, 줄무늬 배경
-  dataEven: {
-    font: { name: '맑은 고딕', sz: 11, color: { rgb: '1F2937' } },
-    fill: { patternType: 'solid', fgColor: { rgb: 'EFF6FF' } },
     alignment: { vertical: 'center', wrapText: true },
     border: {
       top: { style: 'thin', color: { rgb: '9CA3AF' } },
@@ -150,10 +137,10 @@ function createSummarySheet(
   drugs: (DrugApproval | ExtendedDrugApproval)[],
   dateRange?: { start: string; end: string }
 ): (string | number)[][] {
+  // 시작일-종료일 형식으로 제목 생성
   const title = dateRange 
-    ? `${dateRange.start.substring(0, 7).replace('-', '년 ')}월 항암제 승인현황 요약`
+    ? `${dateRange.start} ~ ${dateRange.end} 항암제 승인현황 요약`
     : '항암제 승인현황 요약';
-
   // 허가유형별 집계
   const approvalTypes: Record<string, number> = {};
   const manufactureTypes: Record<string, number> = { '수입': 0, '제조': 0 };
@@ -256,8 +243,8 @@ function applyDetailStyles(sheet: XLSX.WorkSheet, data: (string | number)[][]): 
       if (row === 0) {
         cell.s = STYLES.header;
       } else {
-        // 데이터 행 스타일 (줄무늬)
-        cell.s = row % 2 === 0 ? STYLES.dataEven : STYLES.dataOdd;
+        // 데이터 행 스타일 (배경 없음, 테두리만)
+        cell.s = STYLES.data;
       }
     }
   }
@@ -299,11 +286,11 @@ function applySummaryStyles(sheet: XLSX.WorkSheet, data: (string | number)[][]):
       }
       // 제품 목록 영역 (상세 목록 헤더 이후)
       else if (productHeaderRow > 0 && row > productHeaderRow) {
-        cell.s = (row - productHeaderRow) % 2 === 0 ? STYLES.dataEven : STYLES.dataOdd;
+        cell.s = STYLES.data;
       }
       // 통계 영역
       else if (row >= 5 && row < productHeaderRow - 2) {
-        cell.s = row % 2 === 0 ? STYLES.dataEven : STYLES.dataOdd;
+        cell.s = STYLES.data;
       }
       // 빈 행
       else {
