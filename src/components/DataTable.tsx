@@ -71,7 +71,7 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
               <th className="w-[180px]">주성분</th>
               <th className="min-w-[280px]">적응증</th>
               <th className="w-[100px]">암종</th>
-              <th className="w-[90px]">전문일반</th>
+              
               <th className="w-[100px]">허가유형</th>
               <th className="w-[80px]">제조/수입</th>
               <th className="w-[100px]">제조국</th>
@@ -82,7 +82,7 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
-                <td colSpan={13} className="text-center py-12 text-muted-foreground">
+                <td colSpan={12} className="text-center py-12 text-muted-foreground">
                   검색 결과가 없습니다.
                 </td>
               </tr>
@@ -130,9 +130,6 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
                       <span className="text-primary text-sm font-medium">
                         {drug.cancerType}
                       </span>
-                    </td>
-                    <td>
-                      <span className="text-xs">{ext.drugCategory || '전문의약품'}</span>
                     </td>
                     <td>
                       <span className={`text-xs px-2 py-1 rounded font-medium ${
