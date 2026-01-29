@@ -61,22 +61,22 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
       </div>
 
       <div className="overflow-x-auto -mx-6">
-        <table className="data-table min-w-[1600px]">
+        <table className="data-table min-w-[1800px]">
           <thead>
             <tr>
-              <th className="w-[100px]">품목기준코드</th>
-              <th>제품명</th>
-              <th>업체명</th>
+              <th className="w-[120px]">품목기준코드</th>
+              <th className="w-[200px]">제품명</th>
+              <th className="w-[160px]">업체명</th>
               <th className="w-[100px]">허가일</th>
-              <th>주성분</th>
-              <th className="min-w-[200px]">적응증</th>
+              <th className="w-[180px]">주성분</th>
+              <th className="min-w-[280px]">적응증</th>
               <th className="w-[100px]">암종</th>
-              <th className="w-[80px]">전문일반</th>
-              <th className="w-[80px]">허가유형</th>
-              <th className="w-[70px]">제조/수입</th>
-              <th>제조국</th>
-              <th>위탁제조업체</th>
-              <th>비고</th>
+              <th className="w-[90px]">전문일반</th>
+              <th className="w-[100px]">허가유형</th>
+              <th className="w-[80px]">제조/수입</th>
+              <th className="w-[100px]">제조국</th>
+              <th className="w-[180px]">위탁제조업체</th>
+              <th className="w-[120px]">비고</th>
             </tr>
           </thead>
           <tbody>
@@ -136,7 +136,8 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
                     </td>
                     <td>
                       <span className={`text-xs px-2 py-1 rounded font-medium ${
-                        ext.approvalType === '신약' ? 'bg-primary/15 text-primary' :
+                        ext.approvalType === '신약' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
+                        ext.approvalType === '제네릭' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
                         ext.approvalType === '희귀의약품' ? 'bg-orphan/20 text-orphan' :
                         'bg-muted text-muted-foreground'
                       }`}>
