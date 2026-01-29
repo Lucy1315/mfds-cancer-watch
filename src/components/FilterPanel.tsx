@@ -95,8 +95,8 @@ const FilterPanel = ({
         </div>
       </div>
 
-      {/* 필터 영역 - 3x2 그리드 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* 필터 영역 - 한 줄 */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {/* 시작일 */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">시작일</label>
