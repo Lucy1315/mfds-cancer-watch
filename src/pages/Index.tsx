@@ -7,8 +7,8 @@ import UserGuide from '@/components/UserGuide';
 import ChartGrid from '@/components/ChartGrid';
 import DataTable from '@/components/DataTable';
 import { Button } from '@/components/ui/button';
-import { recentApprovals, dateRange } from '@/data/recentApprovals';
-import { cancerTypes, DrugApproval } from '@/data/drugData';
+import { recentApprovals, dateRange, ExtendedDrugApproval } from '@/data/recentApprovals';
+import { cancerTypes } from '@/data/drugData';
 import { parseExcelFile } from '@/utils/excelParser';
 import { exportToExcel } from '@/utils/excelExport';
 
@@ -20,10 +20,11 @@ const Index = () => {
     cancerType: '전체',
     manufactureType: '전체',
     company: '전체',
+    approvalType: '전체',
   });
 
   // 업로드된 데이터
-  const [uploadedData, setUploadedData] = useState<DrugApproval[] | null>(null);
+  const [uploadedData, setUploadedData] = useState<ExtendedDrugApproval[] | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
 
   // 현재 데이터 소스
@@ -33,6 +34,12 @@ const Index = () => {
   const companies = useMemo(() => {
     const uniqueCompanies = [...new Set(currentData.map(d => d.company))];
     return uniqueCompanies.sort();
+  }, [currentData]);
+
+  // 허가유형 목록 추출
+  const approvalTypes = useMemo(() => {
+    const uniqueTypes = [...new Set(currentData.map(d => d.approvalType).filter(Boolean))];
+    return uniqueTypes.sort();
   }, [currentData]);
 
   // 필터링된 데이터
@@ -62,6 +69,11 @@ const Index = () => {
         return false;
       }
 
+      // 허가유형 필터
+      if (filters.approvalType !== '전체' && drug.approvalType !== filters.approvalType) {
+        return false;
+      }
+
       return true;
     });
   }, [currentData, filters]);
@@ -74,6 +86,7 @@ const Index = () => {
       cancerType: '전체',
       manufactureType: '전체',
       company: '전체',
+      approvalType: '전체',
     });
     setUploadedData(null);
     setUploadedFileName('');
@@ -158,6 +171,7 @@ const Index = () => {
           onFileUpload={handleFileUpload}
           cancerTypes={cancerTypes}
           companies={companies}
+          approvalTypes={approvalTypes}
         />
 
         {/* 사용방법 안내 */}
