@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { DrugApproval } from '@/data/drugData';
 import { ExtendedDrugApproval } from '@/data/recentApprovals';
 import { exportToExcel } from '@/utils/excelExport';
+import ApprovalTypeBadge from '@/components/ApprovalTypeBadge';
 
 interface DataTableProps {
   data: (DrugApproval | ExtendedDrugApproval)[];
@@ -132,14 +133,7 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
                       </span>
                     </td>
                     <td>
-                      <span className={`text-xs px-2 py-1 rounded font-medium ${
-                        ext.approvalType === '신약' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
-                        ext.approvalType === '제네릭' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
-                        ext.approvalType === '희귀의약품' ? 'bg-orphan/20 text-orphan' :
-                        'bg-muted text-muted-foreground'
-                      }`}>
-                        {ext.approvalType || '-'}
-                      </span>
+                      <ApprovalTypeBadge approvalType={ext.approvalType} />
                     </td>
                     <td>
                       <span className={`text-xs ${manufactureType === '수입' ? 'text-primary' : ''}`}>
