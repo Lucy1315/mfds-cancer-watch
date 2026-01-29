@@ -188,56 +188,58 @@ const DrugTable = ({ showApiButton = true }: DrugTableProps) => {
         </div>
       </div>
 
-      <div className="overflow-x-auto -mx-6">
-        <table className="data-table min-w-[800px]">
-          <thead>
-            <tr>
-              <th>약품명</th>
-              <th>성분명</th>
-              <th>제조/수입사</th>
-              <th>적응증</th>
-              <th>암종</th>
-              <th>승인일</th>
-              <th>상태</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
+      <div className="overflow-x-auto -mx-6 px-6">
+        <div className="rounded-lg border border-border overflow-hidden shadow-sm">
+          <table className="data-table min-w-[900px]">
+            <thead>
               <tr>
-                <td colSpan={7} className="text-center py-12">
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                    공공데이터 API에서 데이터를 가져오는 중...
-                  </div>
-                </td>
+                <th className="min-w-[180px]">약품명</th>
+                <th className="min-w-[150px]">성분명</th>
+                <th className="min-w-[140px]">제조/수입사</th>
+                <th className="min-w-[250px]">적응증</th>
+                <th className="min-w-[90px]">암종</th>
+                <th className="min-w-[110px]">승인일</th>
+                <th className="min-w-[80px]">상태</th>
               </tr>
-            ) : (
-              filteredDrugs.map((drug, index) => (
-                <tr 
-                  key={drug.id} 
-                  className="animate-slide-in"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <td className="font-medium text-foreground">{drug.drugName}</td>
-                  <td className="text-muted-foreground">{drug.genericName}</td>
-                  <td>{drug.company}</td>
-                  <td className="max-w-[200px] truncate" title={drug.indication}>
-                    {drug.indication}
-                  </td>
-                  <td>
-                    <span className="bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs font-medium">
-                      {drug.cancerType}
-                    </span>
-                  </td>
-                  <td className="text-muted-foreground">{drug.approvalDate}</td>
-                  <td>
-                    <StatusBadge status={drug.status} />
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-16">
+                    <div className="flex items-center justify-center gap-3 text-muted-foreground">
+                      <RefreshCw className="w-6 h-6 animate-spin" />
+                      <span className="text-base">공공데이터 API에서 데이터를 가져오는 중...</span>
+                    </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredDrugs.map((drug, index) => (
+                  <tr 
+                    key={drug.id} 
+                    className="animate-slide-in transition-colors"
+                    style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
+                  >
+                    <td className="font-semibold text-foreground">{drug.drugName}</td>
+                    <td className="text-muted-foreground font-medium">{drug.genericName}</td>
+                    <td className="font-medium">{drug.company}</td>
+                    <td className="max-w-[280px]" title={drug.indication}>
+                      <span className="line-clamp-2">{drug.indication}</span>
+                    </td>
+                    <td>
+                      <span className="inline-flex items-center justify-center bg-primary/10 text-primary px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap">
+                        {drug.cancerType}
+                      </span>
+                    </td>
+                    <td className="text-foreground font-medium tabular-nums">{drug.approvalDate}</td>
+                    <td>
+                      <StatusBadge status={drug.status} />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {!isLoading && filteredDrugs.length === 0 && (
