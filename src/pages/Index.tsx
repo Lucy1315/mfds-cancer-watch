@@ -21,6 +21,7 @@ const Index = () => {
     manufactureType: '전체',
     company: '전체',
     approvalType: '전체',
+    mechanismType: '전체',
   });
 
   // 업로드된 데이터
@@ -40,6 +41,30 @@ const Index = () => {
   const approvalTypes = useMemo(() => {
     const uniqueTypes = [...new Set(currentData.map(d => d.approvalType).filter(Boolean))];
     return uniqueTypes.sort();
+  }, [currentData]);
+
+  // 작용기전 목록 추출 (notes 필드에서)
+  const mechanismTypes = useMemo(() => {
+    const mechanisms = new Set<string>();
+    currentData.forEach(d => {
+      const ext = d as ExtendedDrugApproval;
+      if (ext.notes) {
+        // notes에서 주요 작용기전 키워드 추출
+        const keywords = ['TKI', 'ADC', '억제제', '수용체', 'SERD', '호르몬요법', '표적항암제'];
+        keywords.forEach(keyword => {
+          if (ext.notes?.includes(keyword)) {
+            // 구체적인 기전 추출
+            if (ext.notes.includes('EGFR TKI')) mechanisms.add('EGFR TKI');
+            else if (ext.notes.includes('FLT3 억제제')) mechanisms.add('FLT3 억제제');
+            else if (ext.notes.includes('IDH 억제제')) mechanisms.add('IDH 억제제');
+            else if (ext.notes.includes('안드로겐 수용체 억제제')) mechanisms.add('안드로겐 수용체 억제제');
+            else if (ext.notes.includes('ADC')) mechanisms.add('ADC');
+            else if (ext.notes.includes('SERD')) mechanisms.add('SERD');
+          }
+        });
+      }
+    });
+    return [...mechanisms].sort();
   }, [currentData]);
 
   // 필터링된 데이터
@@ -74,6 +99,14 @@ const Index = () => {
         return false;
       }
 
+      // 작용기전 필터
+      if (filters.mechanismType !== '전체') {
+        const ext = drug as ExtendedDrugApproval;
+        if (!ext.notes?.includes(filters.mechanismType)) {
+          return false;
+        }
+      }
+
       return true;
     });
   }, [currentData, filters]);
@@ -87,6 +120,7 @@ const Index = () => {
       manufactureType: '전체',
       company: '전체',
       approvalType: '전체',
+      mechanismType: '전체',
     });
     setUploadedData(null);
     setUploadedFileName('');
@@ -172,6 +206,7 @@ const Index = () => {
           cancerTypes={cancerTypes}
           companies={companies}
           approvalTypes={approvalTypes}
+          mechanismTypes={mechanismTypes}
         />
 
         {/* 사용방법 안내 */}
