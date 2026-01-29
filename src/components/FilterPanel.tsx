@@ -15,6 +15,7 @@ export interface FilterState {
   cancerType: string;
   manufactureType: string;
   company: string;
+  approvalType: string;
 }
 
 interface FilterPanelProps {
@@ -24,6 +25,7 @@ interface FilterPanelProps {
   onFileUpload: (file: File) => void;
   cancerTypes: string[];
   companies: string[];
+  approvalTypes: string[];
 }
 
 const FilterPanel = ({
@@ -33,6 +35,7 @@ const FilterPanel = ({
   onFileUpload,
   cancerTypes,
   companies,
+  approvalTypes,
 }: FilterPanelProps) => {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -87,7 +90,7 @@ const FilterPanel = ({
       </div>
 
       {/* 필터 영역 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
         {/* 시작일 */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">시작일</label>
@@ -188,6 +191,22 @@ const FilterPanel = ({
               <SelectItem value="전체">전체</SelectItem>
               {companies.map((company) => (
                 <SelectItem key={company} value={company}>{company}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* 허가유형 */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">허가유형</label>
+          <Select value={filters.approvalType} onValueChange={(v) => updateFilter('approvalType', v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="전체" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="전체">전체</SelectItem>
+              {approvalTypes.map((type) => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
               ))}
             </SelectContent>
           </Select>
