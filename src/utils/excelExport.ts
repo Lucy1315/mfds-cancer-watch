@@ -113,7 +113,7 @@ export function exportToExcel(
     { wch: 12 },  // 허가유형
     { wch: 12 },  // 제조/수입
     { wch: 22 },  // 제조국
-    { wch: 60 },  // 위탁제조업체
+    { wch: 60 },  // 제조업체
     { wch: 28 },  // 비고
   ];
   
@@ -176,7 +176,7 @@ function createSummarySheet(
   rows.push(['', '', '', '', '', '']);
   rows.push(['제품별 상세 목록', '', '', '', '', '']);
   rows.push(['', '', '', '', '', '']);
-  rows.push(['품목기준코드', '제품명', '업체명', '허가유형', '제조국', '위탁제조업체']);
+  rows.push(['품목기준코드', '제품명', '업체명', '허가유형', '제조국', '제조업체']);
 
   // 제품 목록
   drugs.forEach((drug) => {
@@ -200,7 +200,7 @@ function createDetailSheet(
   const headers = [
     '품목기준코드', '제품명', '업체명', '허가일', '주성분', 
     '적응증', '암종', '전문일반', '허가유형', '제조/수입', 
-    '제조국', '위탁제조업체', '비고'
+    '제조국', '제조업체', '비고'
   ];
 
   const rows: (string | number)[][] = [headers];

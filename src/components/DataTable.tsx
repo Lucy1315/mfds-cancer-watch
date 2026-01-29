@@ -76,7 +76,7 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
               <th className="w-[100px]">허가유형</th>
               <th className="w-[80px]">제조/수입</th>
               <th className="w-[100px]">제조국</th>
-              <th className="w-[180px]">위탁제조업체</th>
+              <th className="w-[180px]">제조업체</th>
               <th className="w-[120px]">비고</th>
             </tr>
           </thead>
