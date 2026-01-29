@@ -55,9 +55,15 @@ const FilterPanel = ({
 
   return (
     <div className="stat-card mb-6 animate-fade-in">
-      <div className="flex items-center gap-2 mb-4">
-        <Search className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-semibold text-foreground">필터 & 데이터 업로드</h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Search className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">필터 & 데이터 업로드</h3>
+        </div>
+        <Button variant="outline" onClick={onReset} className="gap-2">
+          <RotateCcw className="w-4 h-4" />
+          초기화
+        </Button>
       </div>
 
       {/* 파일 업로드 영역 */}
@@ -89,8 +95,8 @@ const FilterPanel = ({
         </div>
       </div>
 
-      {/* 필터 영역 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
+      {/* 필터 영역 - 3x2 그리드 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* 시작일 */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">시작일</label>
@@ -210,15 +216,6 @@ const FilterPanel = ({
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        {/* 초기화 */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-transparent">초기화</label>
-          <Button variant="outline" onClick={onReset} className="w-full gap-2">
-            <RotateCcw className="w-4 h-4" />
-            초기화
-          </Button>
         </div>
       </div>
     </div>
