@@ -185,19 +185,39 @@
   }
 
   .data-table {
-    @apply w-full text-sm;
+    @apply w-full text-sm border-collapse;
   }
 
   .data-table th {
-    @apply bg-muted/50 text-muted-foreground font-semibold text-left px-4 py-3 border-b;
+    @apply bg-primary text-primary-foreground font-bold text-left px-5 py-4 border-b-2 border-primary/80;
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
   }
 
   .data-table td {
-    @apply px-4 py-3 border-b border-border/50;
+    @apply px-5 py-4 border-b border-border;
+    font-size: 0.875rem;
+    line-height: 1.5;
   }
 
-  .data-table tr:hover td {
+  .data-table tbody tr:nth-child(odd) td {
     @apply bg-muted/30;
+  }
+
+  .data-table tbody tr:nth-child(even) td {
+    @apply bg-background;
+  }
+
+  .data-table tbody tr:hover td {
+    @apply bg-primary/10;
+  }
+
+  .data-table th:first-child {
+    @apply rounded-tl-lg;
+  }
+
+  .data-table th:last-child {
+    @apply rounded-tr-lg;
   }
 }
 
