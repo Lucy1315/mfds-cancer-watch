@@ -80,23 +80,30 @@ const ChartGrid = ({ data }: ChartGridProps) => {
       .map(([name, value]) => ({ name, value }));
   }, [data]);
 
-  // 허가유형별 분포 (신약, 희귀의약품, 제네릭)
+  // 허가유형별 분포 (신약, 희귀, 제네릭, 유전자재조합 및 세포배양의약품, 자료제출의약품)
   const approvalTypeData = useMemo(() => {
     const counts: Record<string, number> = {
       '신약': 0,
-      '희귀의약품': 0,
+      '희귀': 0,
       '제네릭': 0,
+      '유전자재조합': 0,
+      '자료제출': 0,
     };
     data.forEach((drug) => {
       const ext = drug as ExtendedDrugApproval;
-      const type = ext.approvalType || '기타';
-      if (counts[type] !== undefined) {
-        counts[type]++;
-      }
+      const type = ext.approvalType || '';
+      
+      // 각 키워드를 개별적으로 체크
+      if (type.includes('신약')) counts['신약']++;
+      if (type.includes('희귀')) counts['희귀']++;
+      if (type.includes('제네릭')) counts['제네릭']++;
+      if (type.includes('유전자재조합')) counts['유전자재조합']++;
+      if (type.includes('자료제출')) counts['자료제출']++;
     });
     return Object.entries(counts)
       .filter(([_, value]) => value > 0)
-      .map(([name, value]) => ({ name, value }));
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
   }, [data]);
 
   return (
@@ -171,8 +178,10 @@ const ChartGrid = ({ data }: ChartGridProps) => {
                 {approvalTypeData.map((entry, index) => {
                   const colorMap: Record<string, string> = {
                     '신약': 'hsl(220, 70%, 55%)',
-                    '희귀의약품': 'hsl(280, 65%, 50%)',
+                    '희귀': 'hsl(280, 65%, 50%)',
                     '제네릭': 'hsl(150, 60%, 45%)',
+                    '유전자재조합': 'hsl(180, 60%, 45%)',
+                    '자료제출': 'hsl(45, 80%, 50%)',
                   };
                   return <Cell key={`cell-${index}`} fill={colorMap[entry.name] || COLORS[index]} />;
                 })}
