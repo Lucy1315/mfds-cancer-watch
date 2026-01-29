@@ -87,10 +87,19 @@ const ApprovalTypeBadge = ({ approvalType, className }: ApprovalTypeBadgeProps) 
   const config = getApprovalTypeConfig(approvalType);
   const IconComponent = config.icon;
 
+  // 긴 텍스트의 경우 쉼표 기준으로 줄바꿈
+  const formattedText = approvalType.includes(',') 
+    ? approvalType.split(',').map((part, idx) => (
+        <span key={idx} className="block leading-relaxed">
+          {idx > 0 ? '' : ''}{part.trim()}
+        </span>
+      ))
+    : approvalType;
+
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-medium',
+        'inline-flex items-start gap-1.5 px-2 py-1.5 rounded-md border text-xs font-medium',
         config.bgColor,
         config.textColor,
         config.borderColor,
@@ -98,8 +107,8 @@ const ApprovalTypeBadge = ({ approvalType, className }: ApprovalTypeBadgeProps) 
       )}
       title={approvalType}
     >
-      <IconComponent className="w-3.5 h-3.5 flex-shrink-0" />
-      <span className="truncate max-w-[200px]">{approvalType}</span>
+      <IconComponent className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+      <div className="flex flex-col">{formattedText}</div>
     </div>
   );
 };
