@@ -97,7 +97,7 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
                     className="animate-slide-in"
                     style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
                   >
-                    <td className="text-primary font-medium">
+                    <td className="text-primary font-medium text-xs">
                       <a 
                         href={`https://nedrug.mfds.go.kr/pbp/CCBBB01/getItemDetail?itemSeq=${drug.id}`}
                         target="_blank"
