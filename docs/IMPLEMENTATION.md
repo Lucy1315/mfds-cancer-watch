@@ -9,9 +9,10 @@
 1. [프로젝트 개요](#프로젝트-개요)
 2. [기술 스택](#기술-스택)
 3. [데이터 구현](#데이터-구현)
-4. [컴포넌트 아키텍처](#컴포넌트-아키텍처)
-5. [주요 기능](#주요-기능)
-6. [파일 구조](#파일-구조)
+4. [API 연동 상세](#api-연동-상세)
+5. [컴포넌트 아키텍처](#컴포넌트-아키텍처)
+6. [주요 기능](#주요-기능)
+7. [파일 구조](#파일-구조)
 
 ---
 
@@ -144,6 +145,326 @@ const classifyDrug = (genericName: string): string => {
   // ...
 };
 ```
+
+---
+
+## API 연동 상세
+
+### 1. 공공데이터포털 API 개요
+
+#### 사용 API
+| API 서비스 | 용도 | 엔드포인트 |
+|-----------|------|-----------|
+| DrugPrdtPrmsnInfoService07 | 의약품 허가 정보 조회 | `apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07` |
+| DrbEasyDrugInfoService | 의약품 간편 정보 조회 | `apis.data.go.kr/1471000/DrbEasyDrugInfoService` |
+
+#### API 인증
+- **인증 방식**: 서비스 키 (Service Key)
+- **발급처**: [공공데이터포털](https://data.go.kr)
+- **보안**: Edge Function을 통한 서버사이드 호출로 API 키 노출 방지
+
+### 2. Edge Function 구현
+
+#### 파일 위치
+```
+supabase/functions/fetch-drug-data/index.ts
+```
+
+#### 환경 변수 설정
+```bash
+# Lovable Cloud에서 자동 관리됨
+DATA_GO_KR_API_KEY=<공공데이터포털_서비스키>
+```
+
+#### API 호출 흐름
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   React Client  │────▶│   Edge Function  │────▶│  data.go.kr API │
+│   (Frontend)    │◀────│  (Lovable Cloud) │◀────│   (공공데이터)   │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+```
+
+### 3. Edge Function 상세 코드
+
+#### 기본 구조
+
+```typescript
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  // CORS 프리플라이트 처리
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const apiKey = Deno.env.get('DATA_GO_KR_API_KEY');
+    if (!apiKey) {
+      throw new Error('DATA_GO_KR_API_KEY is not configured');
+    }
+
+    // API 호출 및 데이터 처리
+    const result = await fetchDrugData(apiKey);
+    
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
+```
+
+#### API 호출 함수
+
+```typescript
+async function fetchDrugsByKeyword(apiKey: string, keyword: string): Promise<FetchResult> {
+  const baseUrl = 'https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq07';
+  
+  const params = new URLSearchParams({
+    serviceKey: apiKey,    // 인증 키
+    pageNo: '1',           // 페이지 번호
+    numOfRows: '100',      // 페이지당 건수
+    type: 'json',          // 응답 형식
+    item_name: keyword,    // 검색 키워드 (제품명)
+  });
+
+  const response = await fetch(`${baseUrl}?${params.toString()}`);
+  const data = await response.json();
+  
+  return {
+    items: data?.response?.body?.items?.item || [],
+    totalCount: data?.response?.body?.totalCount || 0,
+  };
+}
+```
+
+### 4. 항암제 필터링 로직
+
+#### 제외 키워드 (오탐 방지)
+```typescript
+const EXCLUDE_KEYWORDS = [
+  '암로디핀', 'amlodipine',   // 고혈압약 (암 접미사 포함)
+  '텔미사르탄', 'telmisartan',
+  '로사르탄', 'losartan',
+  '발사르탄', 'valsartan',
+  // ... 기타 비항암제
+];
+```
+
+#### 항암제 식별 키워드
+```typescript
+const ANTICANCER_KEYWORDS = [
+  // 명확한 항암 키워드
+  '항암', '백혈병', 'leukemia', '림프종', 'lymphoma', '골수종', 'myeloma',
+  
+  // 항암제 성분 접미사 패턴
+  'mab',      // 단클론항체 (트라스투주맙, 니볼루맙 등)
+  'nib',      // 티로신키나제억제제 (이마티닙, 게피티닙 등)
+  'taxel',    // 탁산계 (파클리탁셀, 도세탁셀)
+  'platin',   // 백금화합물 (시스플라틴, 카보플라틴)
+  'rubicin',  // 안트라사이클린 (독소루비신)
+  'ciclib',   // CDK4/6 억제제 (팔보시클립)
+  
+  // 구체적 암종
+  '폐암', '유방암', '대장암', '위암', '간암', '췌장암', '전립선암',
+  
+  // 기타 항암 관련
+  '종양', 'tumor', 'carcinoma', 'metastatic', '전이',
+];
+```
+
+#### 필터링 함수
+```typescript
+function isAnticancerDrug(productName: string, ingredients: string): boolean {
+  const combined = `${productName} ${ingredients}`.toLowerCase();
+  
+  // 1. 제외 키워드 먼저 확인 (오탐 방지)
+  for (const keyword of EXCLUDE_KEYWORDS) {
+    if (combined.includes(keyword.toLowerCase())) {
+      return false;
+    }
+  }
+  
+  // 2. 항암 키워드 확인
+  for (const keyword of ANTICANCER_KEYWORDS) {
+    if (combined.includes(keyword.toLowerCase())) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+```
+
+### 5. 암종 자동 분류
+
+```typescript
+function extractCancerType(indication: string, productName: string): string {
+  const combined = `${indication} ${productName}`.toLowerCase();
+  
+  const cancerTypes: Record<string, string[]> = {
+    '폐암': ['폐암', '비소세포폐암', 'nsclc', 'lung cancer', 'sclc'],
+    '유방암': ['유방암', 'breast cancer', 'her2'],
+    '대장암': ['대장암', '결장암', '직장암', 'colorectal'],
+    '위암': ['위암', 'gastric', 'stomach'],
+    '간암': ['간암', '간세포암', 'hepatocellular', '렌비마'],
+    '췌장암': ['췌장암', 'pancreatic'],
+    '전립선암': ['전립선암', 'prostate', '엔잘루타미드'],
+    '난소암': ['난소암', 'ovarian', '린파자'],
+    '신장암': ['신장암', '신세포암', 'renal'],
+    '방광암': ['방광암', '요로상피암', 'bladder'],
+    '뇌종양': ['뇌종양', '신경교종', '교모세포종', 'glioma', 'glioblastoma'],
+    '혈액암': ['백혈병', 'leukemia', 'aml', 'cml', '림프종', 'lymphoma', '골수종', 'myeloma'],
+    '피부암': ['흑색종', 'melanoma'],
+  };
+  
+  for (const [type, keywords] of Object.entries(cancerTypes)) {
+    if (keywords.some(k => combined.includes(k))) {
+      return type;
+    }
+  }
+  return '기타';
+}
+```
+
+### 6. 검색 키워드 전략
+
+#### 주요 항암제 키워드 (병렬 검색)
+```typescript
+const SEARCH_KEYWORDS = [
+  // 면역항암제
+  '키트루다', '옵디보', '테센트릭', '임핀지',
+  
+  // 표적항암제
+  '허쥬마', '타그리소', '렌비마', '린파자', '이브란스',
+  '글리벡', '타세바', '이레사',
+  
+  // ADC (항체-약물 접합체)
+  '엔허투', '다라잘렉스', 'ADC',
+  
+  // 기존 화학항암제
+  '아바스틴', '허셉틴', '리툭산', '젤로다', '알림타',
+  '택솔', '탁소테레', '시스플라틴', '카보플라틴',
+  '독소루비신', '젬자르', '빈크리스틴',
+  
+  // 신규 승인 약물
+  '보라니고', '반플리타', '퀴자티닙', '보라시데닙',
+];
+```
+
+#### 병렬 검색 구현
+```typescript
+// 모든 키워드로 동시 검색 (성능 최적화)
+const results = await Promise.all(
+  SEARCH_KEYWORDS.map(keyword => fetchDrugsByKeyword(apiKey, keyword))
+);
+
+// 중복 제거
+const seenIds = new Set<string>();
+const allItems: DrugItem[] = [];
+
+for (const result of results) {
+  for (const item of result.items) {
+    if (!seenIds.has(item.ITEM_SEQ)) {
+      seenIds.add(item.ITEM_SEQ);
+      allItems.push(item);
+    }
+  }
+}
+```
+
+### 7. API 응답 데이터 구조
+
+#### 원본 API 응답 (DrugPrdtPrmsnInfoService07)
+```typescript
+interface DrugItem {
+  ITEM_SEQ: string;           // 품목기준코드
+  ITEM_NAME: string;          // 제품명
+  ENTP_NAME: string;          // 업체명
+  ITEM_PERMIT_DATE: string;   // 허가일자 (YYYYMMDD)
+  EE_DOC_DATA?: string;       // 효능효과 (XML)
+  UD_DOC_DATA?: string;       // 용법용량 (XML)
+  NB_DOC_DATA?: string;       // 주의사항 (XML)
+  MAIN_ITEM_INGR?: string;    // 주성분
+  INGR_NAME?: string;         // 성분명
+  CLASS_NAME?: string;        // 약효분류
+}
+```
+
+#### 변환된 응답 (Frontend용)
+```typescript
+interface ProcessedDrug {
+  id: string;              // 품목기준코드
+  drugName: string;        // 제품명
+  genericName: string;     // 주성분명 (추출)
+  company: string;         // 업체명
+  indication: string;      // 적응증 (정제됨)
+  cancerType: string;      // 암종 (자동분류)
+  approvalDate: string;    // 허가일 (YYYY-MM-DD)
+  status: 'approved';      // 상태
+  className?: string;      // 약효분류
+}
+```
+
+### 8. 클라이언트 호출 방법
+
+#### React에서 Edge Function 호출
+```typescript
+import { supabase } from '@/integrations/supabase/client';
+
+// 기본 검색 (주요 항암제)
+const { data, error } = await supabase.functions.invoke('fetch-drug-data', {
+  body: { searchType: 'list' }
+});
+
+// 특정 키워드 검색
+const { data, error } = await supabase.functions.invoke('fetch-drug-data', {
+  body: { searchTerm: '키트루다' }
+});
+
+// 전체 항암제 검색 (모든 키워드)
+const { data, error } = await supabase.functions.invoke('fetch-drug-data', {
+  body: { fetchAll: true }
+});
+```
+
+### 9. 에러 처리
+
+```typescript
+// Edge Function 에러 응답
+{
+  success: false,
+  error: "DATA_GO_KR_API_KEY is not configured",
+  data: []
+}
+
+// 성공 응답
+{
+  success: true,
+  data: [...],
+  totalCount: 150,      // 필터링된 항암제 수
+  originalCount: 1200   // API 원본 결과 수
+}
+```
+
+### 10. 보안 고려사항
+
+| 항목 | 구현 방식 |
+|------|----------|
+| API 키 보호 | Edge Function 서버사이드 호출 |
+| CORS | 허용된 Origin만 접근 |
+| 요청 제한 | 공공데이터포털 일일 할당량 준수 |
+| 에러 노출 | 클라이언트에 상세 에러 미노출 |
 
 ---
 
