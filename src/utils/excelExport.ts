@@ -36,10 +36,14 @@ const STYLES = {
       right: { style: 'thin', color: { rgb: '9CA3AF' } },
     },
   },
-  // 제목 스타일
+  // 제목 스타일 - 더 크고 눈에 띄게
   title: {
-    font: { name: '맑은 고딕', bold: true, sz: 18, color: { rgb: '1E3A8A' } },
+    font: { name: '맑은 고딕', bold: true, sz: 16, color: { rgb: '1E3A8A' } },
+    fill: { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } },
     alignment: { horizontal: 'left', vertical: 'center' },
+    border: {
+      bottom: { style: 'medium', color: { rgb: 'F59E0B' } },
+    },
   },
   // 섹션 헤더
   sectionHeader: {
@@ -88,8 +92,8 @@ export function exportToExcel(
     { wch: 24 }, { wch: 35 }, { wch: 20 }, { wch: 14 }, { wch: 22 }, { wch: 60 }
   ];
   
-  // 행 높이 설정 (가시성 향상)
-  summarySheet['!rows'] = summaryData.map((_, index) => ({ hpt: index === 0 ? 40 : 30 }));
+  // 행 높이 설정 (컴팩트하게)
+  summarySheet['!rows'] = summaryData.map((_, index) => ({ hpt: index === 0 ? 26 : 20 }));
   
   // 요약 시트 스타일 적용
   applySummaryStyles(summarySheet, summaryData);
