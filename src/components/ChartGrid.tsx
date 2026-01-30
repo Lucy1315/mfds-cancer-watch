@@ -125,7 +125,7 @@ const ChartGrid = ({ data }: ChartGridProps) => {
       {/* 총 품목 수 카드 */}
       <div className="stat-card animate-fade-in flex flex-col justify-center items-center min-h-[200px]">
         <span className="text-4xl font-bold text-primary">{data.length}</span>
-        <span className="text-sm text-muted-foreground mt-2">승인 건수</span>
+        <span className="text-sm text-muted-foreground mt-2">승인</span>
       </div>
 
       {/* 암종별 분포 - 도넛 차트 */}
