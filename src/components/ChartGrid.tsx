@@ -107,7 +107,13 @@ const ChartGrid = ({ data }: ChartGridProps) => {
   }, [data]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      {/* 총 품목 수 카드 */}
+      <div className="stat-card animate-fade-in flex flex-col justify-center items-center">
+        <span className="text-4xl font-bold text-primary">{data.length}</span>
+        <span className="text-sm text-muted-foreground mt-2">총 품목 수</span>
+      </div>
+
       {/* 암종별 분포 - 파이 차트 */}
       <div className="stat-card animate-fade-in">
         <div className="flex items-center gap-2 mb-4">
