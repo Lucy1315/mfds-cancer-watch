@@ -13,16 +13,16 @@ export interface ExportOptions {
 
 // 스타일 상수 정의
 const STYLES = {
-  // 헤더 스타일: 12pt, 굵게, 진한 배경
+  // 헤더 스타일: 12pt, 굵게, 진한 배경 (그레이)
   header: {
     font: { name: '맑은 고딕', bold: true, sz: 12, color: { rgb: 'FFFFFF' } },
-    fill: { patternType: 'solid', fgColor: { rgb: '2563EB' } },
+    fill: { patternType: 'solid', fgColor: { rgb: '374151' } },
     alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
     border: {
-      top: { style: 'medium', color: { rgb: '1E40AF' } },
-      bottom: { style: 'medium', color: { rgb: '1E40AF' } },
-      left: { style: 'medium', color: { rgb: '1E40AF' } },
-      right: { style: 'medium', color: { rgb: '1E40AF' } },
+      top: { style: 'medium', color: { rgb: '1F2937' } },
+      bottom: { style: 'medium', color: { rgb: '1F2937' } },
+      left: { style: 'medium', color: { rgb: '1F2937' } },
+      right: { style: 'medium', color: { rgb: '1F2937' } },
     },
   },
   // 데이터 행 - 11pt, 배경 없음, 테두리만
@@ -38,35 +38,35 @@ const STYLES = {
   },
   // 제목 스타일 - 더 크고 눈에 띄게
   title: {
-    font: { name: '맑은 고딕', bold: true, sz: 16, color: { rgb: '1E3A8A' } },
-    fill: { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } },
+    font: { name: '맑은 고딕', bold: true, sz: 16, color: { rgb: '1F2937' } },
+    fill: { patternType: 'solid', fgColor: { rgb: 'F3F4F6' } },
     alignment: { horizontal: 'left', vertical: 'center' },
     border: {
-      bottom: { style: 'medium', color: { rgb: 'F59E0B' } },
+      bottom: { style: 'medium', color: { rgb: '6B7280' } },
     },
   },
-  // 섹션 헤더
+  // 섹션 헤더 (그레이)
   sectionHeader: {
-    font: { name: '맑은 고딕', bold: true, sz: 14, color: { rgb: '1E40AF' } },
-    fill: { patternType: 'solid', fgColor: { rgb: 'DBEAFE' } },
+    font: { name: '맑은 고딕', bold: true, sz: 14, color: { rgb: '374151' } },
+    fill: { patternType: 'solid', fgColor: { rgb: 'E5E7EB' } },
     alignment: { vertical: 'center' },
     border: {
-      top: { style: 'medium', color: { rgb: '3B82F6' } },
-      bottom: { style: 'medium', color: { rgb: '3B82F6' } },
-      left: { style: 'thin', color: { rgb: '3B82F6' } },
-      right: { style: 'thin', color: { rgb: '3B82F6' } },
+      top: { style: 'medium', color: { rgb: '9CA3AF' } },
+      bottom: { style: 'medium', color: { rgb: '9CA3AF' } },
+      left: { style: 'thin', color: { rgb: '9CA3AF' } },
+      right: { style: 'thin', color: { rgb: '9CA3AF' } },
     },
   },
-  // 서브 헤더
+  // 서브 헤더 (그레이)
   subHeader: {
     font: { name: '맑은 고딕', bold: true, sz: 11, color: { rgb: 'FFFFFF' } },
-    fill: { patternType: 'solid', fgColor: { rgb: '3B82F6' } },
+    fill: { patternType: 'solid', fgColor: { rgb: '4B5563' } },
     alignment: { horizontal: 'center', vertical: 'center' },
     border: {
-      top: { style: 'medium', color: { rgb: '1E40AF' } },
-      bottom: { style: 'medium', color: { rgb: '1E40AF' } },
-      left: { style: 'medium', color: { rgb: '1E40AF' } },
-      right: { style: 'medium', color: { rgb: '1E40AF' } },
+      top: { style: 'medium', color: { rgb: '374151' } },
+      bottom: { style: 'medium', color: { rgb: '374151' } },
+      left: { style: 'medium', color: { rgb: '374151' } },
+      right: { style: 'medium', color: { rgb: '374151' } },
     },
   },
 };
@@ -92,8 +92,14 @@ export function exportToExcel(
     { wch: 24 }, { wch: 35 }, { wch: 20 }, { wch: 14 }, { wch: 22 }, { wch: 60 }
   ];
   
-  // 행 높이 설정 (컴팩트하게)
-  summarySheet['!rows'] = summaryData.map((_, index) => ({ hpt: index === 0 ? 26 : 20 }));
+  // 행 높이 설정 - 제품 목록 영역은 더 높게
+  const productHeaderRowIndex = summaryData.findIndex(row => row[0] === '품목기준코드');
+  summarySheet['!rows'] = summaryData.map((_, index) => {
+    if (index === 0) return { hpt: 26 }; // 제목 행
+    if (index === productHeaderRowIndex) return { hpt: 28 }; // 제품 목록 헤더
+    if (productHeaderRowIndex > 0 && index > productHeaderRowIndex) return { hpt: 26 }; // 제품 목록 데이터
+    return { hpt: 20 }; // 기타 행
+  });
   
   // 제목 행 셀 병합 (A1:F1)
   summarySheet['!merges'] = [
