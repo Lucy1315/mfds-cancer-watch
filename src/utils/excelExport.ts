@@ -95,6 +95,11 @@ export function exportToExcel(
   // 행 높이 설정 (컴팩트하게)
   summarySheet['!rows'] = summaryData.map((_, index) => ({ hpt: index === 0 ? 26 : 20 }));
   
+  // 제목 행 셀 병합 (A1:F1)
+  summarySheet['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }
+  ];
+  
   // 요약 시트 스타일 적용
   applySummaryStyles(summarySheet, summaryData);
   
