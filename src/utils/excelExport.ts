@@ -96,8 +96,8 @@ export function exportToExcel(
   const productHeaderRowIndex = summaryData.findIndex(row => row[0] === '품목기준코드');
   summarySheet['!rows'] = summaryData.map((_, index) => {
     if (index === 0) return { hpt: 26 }; // 제목 행
-    if (index === productHeaderRowIndex) return { hpt: 28 }; // 제품 목록 헤더
-    if (productHeaderRowIndex > 0 && index > productHeaderRowIndex) return { hpt: 26 }; // 제품 목록 데이터
+    if (index === productHeaderRowIndex) return { hpt: 40 }; // 제품 목록 헤더
+    if (productHeaderRowIndex > 0 && index > productHeaderRowIndex) return { hpt: 40 }; // 제품 목록 데이터
     return { hpt: 20 }; // 기타 행
   });
   
