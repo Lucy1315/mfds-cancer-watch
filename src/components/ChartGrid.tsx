@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
-  PieChart, Pie, Legend
+  BarChart, Bar
 } from 'recharts';
 import { DrugApproval } from '@/data/drugData';
 import { ExtendedDrugApproval } from '@/data/recentApprovals';
@@ -20,7 +20,7 @@ const COLORS = [
 ];
 
 const ChartGrid = ({ data }: ChartGridProps) => {
-  // 암종별 분포 (파이 차트용)
+  // 암종별 분포
   const cancerTypeData = useMemo(() => {
     const counts: Record<string, number> = {};
     data.forEach((drug) => {
@@ -49,7 +49,7 @@ const ChartGrid = ({ data }: ChartGridProps) => {
     ].filter(d => d.value > 0);
   }, [data]);
 
-  // 작용기전별 분포 - notes 필드에서 직접 추출
+  // 작용기전별 분포
   const mechanismData = useMemo(() => {
     const mechanisms: Record<string, number> = {};
     
@@ -57,7 +57,6 @@ const ChartGrid = ({ data }: ChartGridProps) => {
       const ext = drug as ExtendedDrugApproval;
       const notes = ext.notes || '';
       
-      // notes에서 작용기전 키워드 직접 추출
       let mechanism = '기타';
       
       if (notes.includes('ADC')) {
@@ -87,7 +86,7 @@ const ChartGrid = ({ data }: ChartGridProps) => {
       .sort((a, b) => b.value - a.value);
   }, [data]);
 
-  // 허가유형별 분포 (신약, 희귀, 제네릭, 유전자재조합 및 세포배양의약품, 자료제출의약품)
+  // 허가유형별 분포
   const approvalTypeData = useMemo(() => {
     const counts: Record<string, number> = {
       '신약': 0,
@@ -100,7 +99,6 @@ const ChartGrid = ({ data }: ChartGridProps) => {
       const ext = drug as ExtendedDrugApproval;
       const type = ext.approvalType || '';
       
-      // 각 키워드를 개별적으로 체크
       if (type.includes('신약')) counts['신약']++;
       if (type.includes('희귀')) counts['희귀']++;
       if (type.includes('제네릭')) counts['제네릭']++;
@@ -113,81 +111,73 @@ const ChartGrid = ({ data }: ChartGridProps) => {
       .sort((a, b) => b.value - a.value);
   }, [data]);
 
+  const tooltipStyle = {
+    backgroundColor: 'hsl(var(--card))',
+    border: '1px solid hsl(var(--border))',
+    borderRadius: '8px',
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[100px_1fr_1fr_1fr_1fr] gap-4 mb-6">
       {/* 총 품목 수 카드 */}
-      <div className="stat-card animate-fade-in flex flex-col justify-center items-center">
+      <div className="stat-card animate-fade-in flex flex-col justify-center items-center min-h-[200px]">
         <span className="text-4xl font-bold text-primary">{data.length}</span>
         <span className="text-sm text-muted-foreground mt-2">승인 건수</span>
       </div>
 
-      {/* 암종별 분포 - 파이 차트 */}
+      {/* 암종별 분포 - 바 차트 */}
       <div className="stat-card animate-fade-in">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-5 bg-primary rounded" />
           <h4 className="font-semibold text-foreground">암종별 분포</h4>
         </div>
-        <div className="h-[160px]">
+        <div className="h-[180px]">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={cancerTypeData}
-                cx="50%"
-                cy="50%"
-                innerRadius={35}
-                outerRadius={55}
-                paddingAngle={2}
-                dataKey="value"
-              >
+            <BarChart layout="vertical" data={cancerTypeData} margin={{ left: 0, right: 10 }}>
+              <XAxis type="number" tick={{ fontSize: 10 }} />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                width={60} 
+                tick={{ fontSize: 10 }}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(value: number) => [`${value}건`, '']}
+              />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                 {cancerTypeData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-                formatter={(value: number) => [`${value}건`, '']}
-              />
-            </PieChart>
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
-        </div>
-        {/* 3x3 그리드 범례 */}
-        <div className="grid grid-cols-3 gap-1 mt-2">
-          {cancerTypeData.map((item, index) => (
-            <div key={item.name} className="flex items-center gap-1">
-              <div 
-                className="w-2 h-2 rounded-full flex-shrink-0" 
-                style={{ backgroundColor: COLORS[index % COLORS.length] }}
-              />
-              <span className="text-[10px] text-muted-foreground truncate">
-                {item.name}({item.value})
-              </span>
-            </div>
-          ))}
         </div>
       </div>
 
-      {/* 허가유형별 분포 - 도넛 차트 */}
+      {/* 허가유형별 분포 - 바 차트 */}
       <div className="stat-card animate-fade-in">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-5 bg-orphan rounded" />
           <h4 className="font-semibold text-foreground">허가유형별 분포</h4>
         </div>
-        <div className="h-[200px]">
+        <div className="h-[180px]">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={approvalTypeData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={70}
-                paddingAngle={3}
-                dataKey="value"
-              >
+            <BarChart layout="vertical" data={approvalTypeData} margin={{ left: 0, right: 10 }}>
+              <XAxis type="number" tick={{ fontSize: 10 }} />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                width={70} 
+                tick={{ fontSize: 10 }}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(value: number) => [`${value}건`, '']}
+              />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                 {approvalTypeData.map((entry, index) => {
                   const colorMap: Record<string, string> = {
                     '신약': 'hsl(220, 70%, 55%)',
@@ -198,117 +188,71 @@ const ChartGrid = ({ data }: ChartGridProps) => {
                   };
                   return <Cell key={`cell-${index}`} fill={colorMap[entry.name] || COLORS[index]} />;
                 })}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-                formatter={(value: number) => [`${value}건`, '']}
-              />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                formatter={(value) => {
-                  const item = approvalTypeData.find(d => d.name === value);
-                  return <span className="text-xs">{value}({item?.value || 0}건)</span>;
-                }}
-              />
-            </PieChart>
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* 제조/수입 비율 - 도넛 차트 */}
+      {/* 제조/수입 비율 - 바 차트 */}
       <div className="stat-card animate-fade-in">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-5 bg-accent rounded" />
           <h4 className="font-semibold text-foreground">제조/수입 비율</h4>
         </div>
-        <div className="h-[200px]">
+        <div className="h-[180px]">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={manufactureData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={70}
-                paddingAngle={3}
-                dataKey="value"
-              >
+            <BarChart layout="vertical" data={manufactureData} margin={{ left: 0, right: 10 }}>
+              <XAxis type="number" tick={{ fontSize: 10 }} />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                width={40} 
+                tick={{ fontSize: 10 }}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(value: number) => [`${value}건`, '']}
+              />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                 {manufactureData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-                formatter={(value: number) => [`${value}건`, '']}
-              />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                formatter={(value) => {
-                  const item = manufactureData.find(d => d.name === value);
-                  return <span className="text-xs">{value}({item?.value || 0}건)</span>;
-                }}
-              />
-            </PieChart>
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* 작용기전별 분포 - 도넛 차트 */}
+      {/* 작용기전별 분포 - 바 차트 */}
       <div className="stat-card animate-fade-in">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-5 bg-secondary rounded" />
           <h4 className="font-semibold text-foreground">작용기전별 분포</h4>
         </div>
-        <div className="h-[160px]">
+        <div className="h-[180px]">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={mechanismData}
-                cx="50%"
-                cy="50%"
-                innerRadius={35}
-                outerRadius={55}
-                paddingAngle={2}
-                dataKey="value"
-              >
+            <BarChart layout="vertical" data={mechanismData} margin={{ left: 0, right: 10 }}>
+              <XAxis type="number" tick={{ fontSize: 10 }} />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                width={100} 
+                tick={{ fontSize: 9 }}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(value: number) => [`${value}건`, '']}
+              />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                 {mechanismData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[(index + 1) % COLORS.length]} />
                 ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-                formatter={(value: number) => [`${value}건`, '']}
-              />
-            </PieChart>
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
-        </div>
-        {/* 3x2 그리드 범례 */}
-        <div className="grid grid-cols-3 gap-1 mt-2">
-          {mechanismData.map((item, index) => (
-            <div key={item.name} className="flex items-center gap-1">
-              <div 
-                className="w-2 h-2 rounded-full flex-shrink-0" 
-                style={{ backgroundColor: COLORS[(index + 1) % COLORS.length] }}
-              />
-              <span className="text-[10px] text-muted-foreground truncate">
-                {item.name}({item.value})
-              </span>
-            </div>
-          ))}
         </div>
       </div>
     </div>
