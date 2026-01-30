@@ -269,16 +269,16 @@ const ChartGrid = ({ data }: ChartGridProps) => {
           <div className="w-1 h-5 bg-secondary rounded" />
           <h4 className="font-semibold text-foreground">작용기전별 분포</h4>
         </div>
-        <div className="h-[200px]">
+        <div className="h-[160px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={mechanismData}
                 cx="50%"
                 cy="50%"
-                innerRadius={50}
-                outerRadius={70}
-                paddingAngle={3}
+                innerRadius={35}
+                outerRadius={55}
+                paddingAngle={2}
                 dataKey="value"
               >
                 {mechanismData.map((_, index) => (
@@ -293,16 +293,22 @@ const ChartGrid = ({ data }: ChartGridProps) => {
                 }}
                 formatter={(value: number) => [`${value}건`, '']}
               />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                formatter={(value) => {
-                  const item = mechanismData.find(d => d.name === value);
-                  return <span className="text-xs">{value}({item?.value || 0}건)</span>;
-                }}
-              />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+        {/* 3x2 그리드 범례 */}
+        <div className="grid grid-cols-3 gap-1 mt-2">
+          {mechanismData.map((item, index) => (
+            <div key={item.name} className="flex items-center gap-1">
+              <div 
+                className="w-2 h-2 rounded-full flex-shrink-0" 
+                style={{ backgroundColor: COLORS[(index + 1) % COLORS.length] }}
+              />
+              <span className="text-[10px] text-muted-foreground truncate">
+                {item.name}({item.value})
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
