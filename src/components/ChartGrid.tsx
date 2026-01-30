@@ -49,35 +49,42 @@ const ChartGrid = ({ data }: ChartGridProps) => {
     ].filter(d => d.value > 0);
   }, [data]);
 
-  // 작용기전별 분포
+  // 작용기전별 분포 - notes 필드에서 직접 추출
   const mechanismData = useMemo(() => {
-    const mechanisms: Record<string, number> = {
-      '면역항암제': 0,
-      '표적치료제': 0,
-      'ADC': 0,
-      '호르몬요법': 0,
-      '기타': 0,
-    };
+    const mechanisms: Record<string, number> = {};
+    
     data.forEach((drug) => {
       const ext = drug as ExtendedDrugApproval;
-      const notes = ext.notes?.toLowerCase() || '';
-      const name = drug.drugName.toLowerCase() + drug.genericName.toLowerCase();
+      const notes = ext.notes || '';
       
-      if (notes.includes('adc') || name.includes('탄신') || name.includes('마포도틴') || name.includes('소라브탄신')) {
-        mechanisms['ADC']++;
-      } else if (name.includes('mab') || name.includes('주맙') || name.includes('리주맙') || notes.includes('면역')) {
-        mechanisms['면역항암제']++;
-      } else if (name.includes('nib') || name.includes('티닙') || name.includes('니브') || notes.includes('표적') || notes.includes('억제제')) {
-        mechanisms['표적치료제']++;
-      } else if (name.includes('타미드') || name.includes('루타미드') || notes.includes('호르몬') || notes.includes('serd')) {
-        mechanisms['호르몬요법']++;
-      } else {
-        mechanisms['기타']++;
+      // notes에서 작용기전 키워드 직접 추출
+      let mechanism = '기타';
+      
+      if (notes.includes('ADC')) {
+        mechanism = 'ADC';
+      } else if (notes.includes('안드로겐 수용체 억제제')) {
+        mechanism = '안드로겐 수용체 억제제';
+      } else if (notes.includes('SERD') || notes.includes('호르몬요법')) {
+        mechanism = '호르몬요법';
+      } else if (notes.includes('EGFR TKI')) {
+        mechanism = 'EGFR TKI';
+      } else if (notes.includes('FLT3 억제제')) {
+        mechanism = 'FLT3 억제제';
+      } else if (notes.includes('IDH 억제제')) {
+        mechanism = 'IDH 억제제';
+      } else if (notes.includes('표적항암제') || notes.includes('표적')) {
+        mechanism = '표적치료제';
+      } else if (notes.includes('면역')) {
+        mechanism = '면역항암제';
       }
+      
+      mechanisms[mechanism] = (mechanisms[mechanism] || 0) + 1;
     });
+    
     return Object.entries(mechanisms)
       .filter(([_, value]) => value > 0)
-      .map(([name, value]) => ({ name, value }));
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
   }, [data]);
 
   // 허가유형별 분포 (신약, 희귀, 제네릭, 유전자재조합 및 세포배양의약품, 자료제출의약품)
