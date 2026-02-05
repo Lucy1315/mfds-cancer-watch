@@ -1,12 +1,10 @@
- import { Pill, FileDown } from 'lucide-react';
- import { Button } from '@/components/ui/button';
- import { exportDocumentationExcel } from '@/utils/exportDocumentation';
+import { Pill } from 'lucide-react';
  
  const Header = () => {
    return (
      <header className="gradient-header text-primary-foreground">
        <div className="container py-6">
-         <div className="flex items-center justify-between">
+        <div className="flex items-center">
            <div className="flex items-center gap-3">
              <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-foreground/15 backdrop-blur-sm">
                <Pill className="w-6 h-6" />
@@ -18,15 +16,6 @@
                </p>
              </div>
            </div>
-           <Button
-             variant="secondary"
-             size="sm"
-             onClick={exportDocumentationExcel}
-             className="flex items-center gap-2 bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground border-0"
-           >
-             <FileDown className="w-4 h-4" />
-             <span className="hidden sm:inline">문서화 다운로드</span>
-           </Button>
          </div>
        </div>
      </header>
