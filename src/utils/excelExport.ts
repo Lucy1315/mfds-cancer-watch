@@ -11,6 +11,56 @@ export interface ExportOptions {
   };
 }
 
+// Base64로 엑셀 데이터 생성 (이메일 첨부용)
+export function generateExcelBase64(
+  drugs: (DrugApproval | ExtendedDrugApproval)[],
+  options: { dateRange?: { start: string; end: string } } = {}
+): string {
+  const { dateRange } = options;
+  
+  // 워크북 생성 (exportToExcel과 동일한 구조)
+  const workbook = XLSX.utils.book_new();
+
+  // ===== 시트 1: 요약 =====
+  const summaryData = createSummarySheet(drugs, dateRange);
+  const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+  
+  summarySheet['!cols'] = [
+    { wch: 24 }, { wch: 35 }, { wch: 20 }, { wch: 14 }, { wch: 22 }, { wch: 60 }
+  ];
+  
+  const productHeaderRowIndex = summaryData.findIndex(row => row[0] === '품목기준코드');
+  summarySheet['!rows'] = summaryData.map((_, index) => {
+    if (index === 0) return { hpt: 26 };
+    if (index === productHeaderRowIndex) return { hpt: 40 };
+    if (productHeaderRowIndex > 0 && index > productHeaderRowIndex) return { hpt: 40 };
+    return { hpt: 20 };
+  });
+  
+  summarySheet['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }
+  ];
+  
+  applySummaryStyles(summarySheet, summaryData);
+  XLSX.utils.book_append_sheet(workbook, summarySheet, '요약');
+
+  // ===== 시트 2: 상세 목록 =====
+  const detailData = createDetailSheet(drugs);
+  const detailSheet = XLSX.utils.aoa_to_sheet(detailData);
+  
+  detailSheet['!cols'] = [
+    { wch: 16 }, { wch: 38 }, { wch: 20 }, { wch: 14 }, { wch: 40 }, { wch: 70 },
+    { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 22 }, { wch: 60 }, { wch: 28 },
+  ];
+  
+  detailSheet['!rows'] = detailData.map((_, index) => ({ hpt: index === 0 ? 38 : 34 }));
+  applyDetailStyles(detailSheet, detailData);
+  XLSX.utils.book_append_sheet(workbook, detailSheet, '상세목록');
+
+  // Base64로 출력
+  return XLSX.write(workbook, { bookType: 'xlsx', type: 'base64' });
+}
+
 // 스타일 상수 정의
 const STYLES = {
   // 헤더 스타일: 12pt, 굵게, 진한 배경 (그레이)
