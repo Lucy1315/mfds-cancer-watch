@@ -1,18 +1,34 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Download, Calendar } from 'lucide-react';
+import { Download, Calendar, LayoutDashboard, Settings } from 'lucide-react';
 import Header from '@/components/Header';
 import FilterPanel, { FilterState } from '@/components/FilterPanel';
 import UserGuide from '@/components/UserGuide';
 import ChartGrid from '@/components/ChartGrid';
 import DataTable from '@/components/DataTable';
+import AdminLogin from '@/components/AdminLogin';
+import AdminPanel from '@/components/AdminPanel';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { recentApprovals, dateRange, ExtendedDrugApproval } from '@/data/recentApprovals';
 import { cancerTypes } from '@/data/drugData';
 import { parseExcelFile } from '@/utils/excelParser';
 import { exportToExcel } from '@/utils/excelExport';
 
 const Index = () => {
+  // 관리자 인증 상태
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  // 세션 복원
+  useEffect(() => {
+    const saved = sessionStorage.getItem('adminAuth');
+    if (saved === 'true') {
+      setIsAdminMode(true);
+    }
+  }, []);
+
   // 필터 상태
   const [filters, setFilters] = useState<FilterState>({
     startDate: new Date('2025-12-01'),
@@ -172,57 +188,125 @@ const Index = () => {
     return `${dateRange.start} ~ ${dateRange.end}`;
   }, [filters.startDate, filters.endDate]);
 
+  // 관리자 탭 클릭 처리
+  const handleAdminTabClick = () => {
+    if (isAdminMode) {
+      setActiveTab('admin');
+    } else {
+      setShowAdminLogin(true);
+    }
+  };
+
+  // 관리자 로그인 성공
+  const handleAdminLoginSuccess = () => {
+    setIsAdminMode(true);
+    setShowAdminLogin(false);
+    setActiveTab('admin');
+  };
+
+  // 관리자 로그아웃
+  const handleAdminLogout = () => {
+    setIsAdminMode(false);
+    setActiveTab('dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="container py-6">
-        {/* 헤더 영역 */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-6 h-6 text-primary" />
-            <div>
-              <h1 className="text-xl font-bold text-foreground">MFDS 항암제 승인현황 대시보드</h1>
-              <p className="text-sm text-muted-foreground">
-                {uploadedFileName 
-                  ? `업로드: ${uploadedFileName} (${filteredData.length}건)`
-                  : `기간: ${dateRangeLabel} | 공공데이터 API 기반`
-                }
-              </p>
+        {/* 탭 네비게이션 */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <TabsList>
+                <TabsTrigger value="dashboard" className="gap-2">
+                  <LayoutDashboard className="w-4 h-4" />
+                  대시보드
+                </TabsTrigger>
+                <TabsTrigger
+                  value="admin"
+                  className="gap-2"
+                  onClick={(e) => {
+                    if (!isAdminMode) {
+                      e.preventDefault();
+                      handleAdminTabClick();
+                    }
+                  }}
+                >
+                  <Settings className="w-4 h-4" />
+                  관리자
+                </TabsTrigger>
+              </TabsList>
+
+              {activeTab === 'dashboard' && (
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-primary" />
+                  <div>
+                    <h1 className="text-lg font-bold text-foreground">MFDS 항암제 승인현황</h1>
+                    <p className="text-xs text-muted-foreground">
+                      {uploadedFileName
+                        ? `업로드: ${uploadedFileName} (${filteredData.length}건)`
+                        : `기간: ${dateRangeLabel} | 공공데이터 API 기반`}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {activeTab === 'dashboard' && (
+              <Button onClick={handleDownloadAll} className="gap-2">
+                <Download className="w-4 h-4" />
+                전체 다운로드
+              </Button>
+            )}
           </div>
-          <Button onClick={handleDownloadAll} className="gap-2">
-            <Download className="w-4 h-4" />
-            전체 다운로드
-          </Button>
-        </div>
 
-        {/* 필터 패널 */}
-        <FilterPanel
-          filters={filters}
-          onFiltersChange={setFilters}
-          onReset={handleReset}
-          onFileUpload={handleFileUpload}
-          cancerTypes={cancerTypes}
-          companies={companies}
-          approvalTypes={approvalTypes}
-          mechanismTypes={mechanismTypes}
-        />
+          {/* 대시보드 탭 콘텐츠 */}
+          <TabsContent value="dashboard" className="mt-0 space-y-6">
+            {/* 필터 패널 */}
+            <FilterPanel
+              filters={filters}
+              onFiltersChange={setFilters}
+              onReset={handleReset}
+              onFileUpload={handleFileUpload}
+              cancerTypes={cancerTypes}
+              companies={companies}
+              approvalTypes={approvalTypes}
+              mechanismTypes={mechanismTypes}
+            />
 
-        {/* 사용방법 안내 */}
-        <UserGuide />
+            {/* 사용방법 안내 */}
+            <UserGuide />
 
-        {/* 차트 그리드 */}
-        <ChartGrid data={filteredData} />
+            {/* 차트 그리드 */}
+            <ChartGrid data={filteredData} />
 
-        {/* 데이터 테이블 */}
-        <DataTable 
-          data={filteredData} 
-          dateRange={{
-            start: filters.startDate ? format(filters.startDate, 'yyyy-MM-dd') : dateRange.start,
-            end: filters.endDate ? format(filters.endDate, 'yyyy-MM-dd') : dateRange.end,
-          }}
-        />
+            {/* 데이터 테이블 */}
+            <DataTable
+              data={filteredData}
+              dateRange={{
+                start: filters.startDate ? format(filters.startDate, 'yyyy-MM-dd') : dateRange.start,
+                end: filters.endDate ? format(filters.endDate, 'yyyy-MM-dd') : dateRange.end,
+              }}
+            />
+          </TabsContent>
+
+          {/* 관리자 탭 콘텐츠 */}
+          <TabsContent value="admin" className="mt-0">
+            {isAdminMode ? (
+              <AdminPanel
+                data={filteredData}
+                filters={filters}
+                onLogout={handleAdminLogout}
+              />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                관리자 인증이 필요합니다.
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Footer */}
         <footer className="text-center text-sm text-muted-foreground pt-8 mt-8 border-t">
@@ -230,6 +314,13 @@ const Index = () => {
           <p className="mt-1">마지막 업데이트: 2026년 1월 28일</p>
         </footer>
       </main>
+
+      {/* 관리자 로그인 다이얼로그 */}
+      <AdminLogin
+        isOpen={showAdminLogin}
+        onClose={() => setShowAdminLogin(false)}
+        onSuccess={handleAdminLoginSuccess}
+      />
     </div>
   );
 };
