@@ -13,7 +13,7 @@ export interface ExtendedDrugApproval extends DrugApproval {
 // 2025년 12월 1일 ~ 2026년 2월 10일 항암제 승인 현황 (공공데이터 API + 추가 조사 기반)
 export const recentApprovals: ExtendedDrugApproval[] = [
   {
-    id: '202600301',
+    id: '202600376',
     drugName: '루마크라스정240밀리그램(소토라십)',
     genericName: '소토라십 (Sotorasib)',
     company: '암젠코리아유한회사',
