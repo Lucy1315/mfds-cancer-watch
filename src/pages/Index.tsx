@@ -32,7 +32,7 @@ const Index = () => {
   // 필터 상태
   const [filters, setFilters] = useState<FilterState>({
     startDate: new Date('2025-12-01'),
-    endDate: new Date('2026-02-10'),
+    endDate: new Date('2026-02-12'),
     cancerType: '전체',
     manufactureType: '전체',
     company: '전체',
@@ -131,7 +131,7 @@ const Index = () => {
   const handleReset = useCallback(() => {
     setFilters({
       startDate: new Date('2025-12-01'),
-      endDate: new Date('2026-02-10'),
+      endDate: new Date('2026-02-12'),
       cancerType: '전체',
       manufactureType: '전체',
       company: '전체',
