@@ -10,7 +10,7 @@ export interface ExtendedDrugApproval extends DrugApproval {
   notes?: string;                 // 비고
 }
 
-// 2025년 12월 1일 ~ 2026년 2월 10일 항암제 승인 현황 (공공데이터 API + 추가 조사 기반)
+// 2025년 12월 1일 ~ 2026년 2월 12일 항암제 승인 현황 (공공데이터 API + 추가 조사 기반)
 export const recentApprovals: ExtendedDrugApproval[] = [
   {
     id: '202600376',
@@ -21,12 +21,44 @@ export const recentApprovals: ExtendedDrugApproval[] = [
     cancerType: '폐암',
     approvalDate: '2026-02-10',
     status: 'approved',
-    manufacturingCountry: '미국',
+    manufacturingCountry: '캐나다, 미국',
     consignedManufacturer: 'Amgen Inc.',
     approvalType: '자료제출의약품',
     drugCategory: '전문의약품',
     manufactureType: '수입',
     notes: 'KRAS G12C 억제제, 표적항암제',
+  },
+  {
+    id: '202600307',
+    drugName: '덴브레이스주(데노수맙)',
+    genericName: '데노수맙 (Denosumab)',
+    company: '에이치케이이노엔(주)',
+    indication: '다발성 골수종 및 고형암의 골전이 환자에서 골격계 증상 발생 위험 감소, 골거대세포종 치료',
+    cancerType: '다발성골수종',
+    approvalDate: '2026-02-04',
+    status: 'approved',
+    manufacturingCountry: '스페인',
+    consignedManufacturer: 'GH GENHELIX S.A., UNIVERSAL FARMA, S.L.',
+    approvalType: '자료제출의약품, 유전자재조합의약품 및 세포배양의약품',
+    drugCategory: '전문의약품',
+    manufactureType: '수입',
+    notes: 'RANKL 억제제, 동등생물의약품(엑스지바 대조)',
+  },
+  {
+    id: '202600308',
+    drugName: '이잠비아프리필드시린지(데노수맙)',
+    genericName: '데노수맙 (Denosumab)',
+    company: '에이치케이이노엔(주)',
+    indication: '다발성 골수종 및 고형암의 골전이 환자에서 골격계 증상 발생 위험 감소, 골거대세포종 치료',
+    cancerType: '다발성골수종',
+    approvalDate: '2026-02-04',
+    status: 'approved',
+    manufacturingCountry: '스페인',
+    consignedManufacturer: 'GH GENHELIX S.A., UNIVERSAL FARMA, S.L.',
+    approvalType: '자료제출의약품, 유전자재조합의약품 및 세포배양의약품',
+    drugCategory: '전문의약품',
+    manufactureType: '수입',
+    notes: 'RANKL 억제제, 동등생물의약품(엑스지바 대조)',
   },
   {
     id: '202600226',
@@ -241,7 +273,7 @@ export const recentApprovals: ExtendedDrugApproval[] = [
 // 기간 정보
 export const dateRange = {
   start: '2025-12-01',
-  end: '2026-02-10',
+  end: '2026-02-12',
   label: '2025년 12월 ~ 2026년 2월',
 };
 
