@@ -16,21 +16,27 @@ interface DataTableProps {
 const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredData = useMemo(() => {
-    if (!searchTerm) return data;
-    const term = searchTerm.toLowerCase();
-    return data.filter((drug) =>
-      drug.drugName.toLowerCase().includes(term) ||
-      drug.genericName.toLowerCase().includes(term) ||
-      drug.company.toLowerCase().includes(term) ||
-      drug.indication.toLowerCase().includes(term) ||
-      drug.cancerType.toLowerCase().includes(term) ||
-      drug.id.toLowerCase().includes(term)
+  const filteredAndSortedData = useMemo(() => {
+    let result = data;
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter((drug) =>
+        drug.drugName.toLowerCase().includes(term) ||
+        drug.genericName.toLowerCase().includes(term) ||
+        drug.company.toLowerCase().includes(term) ||
+        drug.indication.toLowerCase().includes(term) ||
+        drug.cancerType.toLowerCase().includes(term) ||
+        drug.id.toLowerCase().includes(term)
+      );
+    }
+    // 과거순(오래된 날짜 먼저) 정렬
+    return [...result].sort((a, b) => 
+      new Date(a.approvalDate).getTime() - new Date(b.approvalDate).getTime()
     );
   }, [data, searchTerm]);
 
   const handleExport = () => {
-    exportToExcel(filteredData, {
+    exportToExcel(filteredAndSortedData, {
       filename: 'MFDS_항암제_승인현황',
       dateRange,
     });
@@ -42,7 +48,7 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
         <div className="flex items-center gap-2">
           <FileText className="w-5 h-5 text-primary" />
           <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-          <span className="text-sm text-muted-foreground ml-2">Total: {filteredData.length}</span>
+          <span className="text-sm text-muted-foreground ml-2">Total: {filteredAndSortedData.length}</span>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -81,14 +87,14 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
             </tr>
           </thead>
           <tbody>
-            {filteredData.length === 0 ? (
+            {filteredAndSortedData.length === 0 ? (
               <tr>
                 <td colSpan={12} className="text-center py-12 text-muted-foreground">
                   검색 결과가 없습니다.
                 </td>
               </tr>
             ) : (
-              filteredData.map((drug, index) => {
+              filteredAndSortedData.map((drug, index) => {
                 const ext = drug as ExtendedDrugApproval;
                 const manufactureType = ext.manufactureType || (drug.company.includes('한국') ? '수입' : '제조');
                 
@@ -162,7 +168,7 @@ const DataTable = ({ data, title = '품목 상세 정보', dateRange }: DataTabl
       </div>
 
       <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">
-        총 {filteredData.length}개 품목
+        총 {filteredAndSortedData.length}개 품목
       </div>
     </div>
   );
