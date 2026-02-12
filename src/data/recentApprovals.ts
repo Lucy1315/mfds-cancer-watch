@@ -10,8 +10,24 @@ export interface ExtendedDrugApproval extends DrugApproval {
   notes?: string;                 // 비고
 }
 
-// 2025년 12월 1일 ~ 2026년 1월 28일 항암제 승인 현황 (공공데이터 API + 추가 조사 기반)
+// 2025년 12월 1일 ~ 2026년 2월 10일 항암제 승인 현황 (공공데이터 API + 추가 조사 기반)
 export const recentApprovals: ExtendedDrugApproval[] = [
+  {
+    id: '202600301',
+    drugName: '루마크라스정240밀리그램(소토라십)',
+    genericName: '소토라십 (Sotorasib)',
+    company: '암젠코리아유한회사',
+    indication: 'KRAS G12C 변이 양성 국소 진행성 또는 전이성 비소세포폐암 치료',
+    cancerType: '폐암',
+    approvalDate: '2026-02-10',
+    status: 'approved',
+    manufacturingCountry: '미국',
+    consignedManufacturer: 'Amgen Inc.',
+    approvalType: '자료제출의약품',
+    drugCategory: '전문의약품',
+    manufactureType: '수입',
+    notes: 'KRAS G12C 억제제, 표적항암제',
+  },
   {
     id: '202600226',
     drugName: '오티닙정40밀리그램(오시머티닙메실산염)',
@@ -225,8 +241,8 @@ export const recentApprovals: ExtendedDrugApproval[] = [
 // 기간 정보
 export const dateRange = {
   start: '2025-12-01',
-  end: '2026-01-28',
-  label: '2025년 12월 ~ 2026년 1월',
+  end: '2026-02-10',
+  label: '2025년 12월 ~ 2026년 2월',
 };
 
 // 암종별 통계
