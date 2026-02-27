@@ -10,8 +10,40 @@ export interface ExtendedDrugApproval extends DrugApproval {
   notes?: string;                 // 비고
 }
 
-// 2025년 12월 1일 ~ 2026년 2월 12일 항암제 승인 현황 (공공데이터 API + 추가 조사 기반)
+// 2025년 12월 1일 ~ 2026년 2월 26일 항암제 승인 현황 (공공데이터 API + 추가 조사 기반)
 export const recentApprovals: ExtendedDrugApproval[] = [
+  {
+    id: '202600412',
+    drugName: '인루리오정200밀리그램(임루네스트란트토실산염)',
+    genericName: '임루네스트란트토실산염 (Imlunestrant Tosylate)',
+    company: '한국릴리(유)',
+    indication: 'ESR1 변이를 동반한 ER-양성, HER2-음성 진행성 또는 전이성 유방암 치료',
+    cancerType: '유방암',
+    approvalDate: '2026-02-13',
+    status: 'approved',
+    manufacturingCountry: '미국',
+    consignedManufacturer: 'Eli Lilly and Company',
+    approvalType: '신약',
+    drugCategory: '전문의약품',
+    manufactureType: '수입',
+    notes: '경구 SERD, 표적항암제(신약)',
+  },
+  {
+    id: '202600411',
+    drugName: '풀베서드주(풀베스트란트)',
+    genericName: '풀베스트란트 (Fulvestrant)',
+    company: '삼진제약(주)',
+    indication: 'HR-양성, HER2-음성, 폐경기 이후 여성의 진행성 또는 전이성 유방암 치료',
+    cancerType: '유방암',
+    approvalDate: '2026-02-13',
+    status: 'approved',
+    manufacturingCountry: '한국',
+    consignedManufacturer: '',
+    approvalType: '제네릭',
+    drugCategory: '전문의약품',
+    manufactureType: '제조',
+    notes: 'SERD, 호르몬요법',
+  },
   {
     id: '202600376',
     drugName: '루마크라스정240밀리그램(소토라십)',
@@ -273,7 +305,7 @@ export const recentApprovals: ExtendedDrugApproval[] = [
 // 기간 정보
 export const dateRange = {
   start: '2025-12-01',
-  end: '2026-02-12',
+  end: '2026-02-26',
   label: '2025년 12월 ~ 2026년 2월',
 };
 
